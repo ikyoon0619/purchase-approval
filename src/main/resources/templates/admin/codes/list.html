@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>공통코드 관리</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1>공통코드 관리</h1>
+        <a class="btn" th:href="@{/admin/codes/new}">그룹 추가</a>
+    </div>
+    <p class="muted">품목 분류, 단위처럼 화면의 선택 목록에 쓰는 값을 관리합니다.</p>
+
+    <form class="card search" th:action="@{/admin/codes}" method="get">
+        <input type="text" name="keyword" placeholder="그룹 코드 또는 이름" th:value="${keyword}">
+        <button type="submit" class="btn secondary">검색</button>
+    </form>
+
+    <section class="card">
+        <p class="muted">총 <strong th:text="${page.totalElements}">0</strong>개 그룹
+            · <span th:text="${page.number + 1}">1</span>/<span th:text="${page.totalPages == 0 ? 1 : page.totalPages}">1</span> 페이지</p>
+        <table class="table">
+            <thead>
+            <tr><th>그룹 코드</th><th>이름</th><th>코드</th><th>상태</th><th></th></tr>
+            </thead>
+            <tbody>
+            <!-- 그룹마다 코드 목록을 보여 주지만 그룹 수만큼 쿼리가 나가지 않는다 (batch fetch, troubleshooting/02) -->
+            <tr th:each="g : ${page.content}">
+                <td><code th:text="${g.groupCode}">UNIT</code></td>
+                <td th:text="${g.name}">단위</td>
+                <td>
+                    <span class="chip small" th:each="n : ${g.codeNames}" th:text="${n}">개</span>
+                    <span class="muted" th:if="${g.codeNames.isEmpty()}">코드 없음</span>
+                </td>
+                <td><span th:class="${g.used} ? 'status ok' : 'status off'" th:text="${g.used} ? '사용' : '중지'">사용</span></td>
+                <td><a th:href="@{/admin/codes/{gc}(gc=${g.groupCode})}">관리</a></td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="5" class="muted">조건에 맞는 그룹이 없습니다.</td></tr>
+            </tbody>
+        </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>

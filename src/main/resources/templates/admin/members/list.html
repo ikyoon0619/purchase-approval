@@ -7,7 +7,11 @@
 <main layout:fragment="content">
     <div class="page-head">
         <h1>사용자 관리</h1>
-        <a class="btn" th:href="@{/admin/members/new}">사용자 등록</a>
+        <div class="search">
+            <!-- 지금 검색 조건 그대로 엑셀로 (page는 빼고) -->
+            <a class="btn secondary" th:href="${@pageLinks.withSameQuery('/admin/members/excel')}">엑셀 다운로드</a>
+            <a class="btn" th:href="@{/admin/members/new}">사용자 등록</a>
+        </div>
     </div>
 
     <form class="card search" th:action="@{/admin/members}" method="get">
@@ -26,14 +30,15 @@
     </form>
 
     <section class="card">
-        <p class="muted">총 <strong th:text="${members.size()}">0</strong>명</p>
+        <p class="muted">총 <strong th:text="${page.totalElements}">0</strong>명
+            · <span th:text="${page.number + 1}">1</span>/<span th:text="${page.totalPages == 0 ? 1 : page.totalPages}">1</span> 페이지</p>
         <table class="table">
             <thead>
             <tr><th>아이디</th><th>이름</th><th>부서</th><th>직급</th><th>역할</th><th>상태</th><th></th></tr>
             </thead>
             <tbody>
             <!-- 부서·직급 이름을 쓰지만 추가 쿼리가 나가지 않는다: 목록 조회에서 fetch join으로 이미 읽어 왔기 때문 -->
-            <tr th:each="m : ${members}">
+            <tr th:each="m : ${page.content}">
                 <td th:text="${m.loginId}">dev1</td>
                 <td th:text="${m.name}">김개발</td>
                 <td th:text="${m.department.name}">개발팀</td>
@@ -43,9 +48,10 @@
                           th:text="${m.enabled} ? '사용' : '중지'">사용</span></td>
                 <td><a th:href="@{/admin/members/{id}/edit(id=${m.id})}">수정</a></td>
             </tr>
-            <tr th:if="${members.isEmpty()}"><td colspan="7" class="muted">조건에 맞는 사용자가 없습니다.</td></tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="muted">조건에 맞는 사용자가 없습니다.</td></tr>
             </tbody>
         </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
     </section>
 </main>
 </body>

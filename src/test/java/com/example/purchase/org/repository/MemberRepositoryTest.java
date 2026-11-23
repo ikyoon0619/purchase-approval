@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
@@ -27,8 +29,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * N+1 문제를 테스트로 재현하고, fetch join으로 고친 결과를 쿼리 수로 비교한다.
  * (docs/troubleshooting/01-사용자-목록-N+1.md)
+ *
+ * <p>4단계부터 application.yml에 default_batch_fetch_size: 100 이 켜져 있어서,
+ * 순수한 N+1을 재현하려고 이 테스트에서만 1로 끈다. (켜 둔 결과는 CodeGroupPagingTest에서 비교)
  */
-@DataJpaTest
+@DataJpaTest(properties = "spring.jpa.properties.hibernate.default_batch_fetch_size=1")
 @ActiveProfiles("test")
 @Import({QuerydslConfig.class, JpaConfig.class, SecurityAuditorAware.class})
 class MemberRepositoryTest {
@@ -77,7 +82,7 @@ class MemberRepositoryTest {
     @Test
     @DisplayName("[해결] fetch join으로 읽으면 쿼리 1번으로 끝난다")
     void fetchJoin() {
-        List<Member> members = memberRepository.search(MemberSearchCond.empty());
+        List<Member> members = memberRepository.searchAll(MemberSearchCond.empty());
         for (Member m : members) {
             m.getDepartment().getName();
             m.getPosition().getName();
@@ -92,10 +97,32 @@ class MemberRepositoryTest {
     @Test
     @DisplayName("이름·아이디 검색과 역할 조건을 함께 쓴다")
     void searchWithCondition() {
-        List<Member> byKeyword = memberRepository.search(new MemberSearchCond("사용자1", null, null));
-        List<Member> byRole = memberRepository.search(new MemberSearchCond(null, null, Role.ADMIN));
+        List<Member> byKeyword = memberRepository.searchAll(new MemberSearchCond("사용자1", null, null));
+        List<Member> byRole = memberRepository.searchAll(new MemberSearchCond(null, null, Role.ADMIN));
 
         assertThat(byKeyword).extracting(Member::getLoginId).containsExactly("user1");
         assertThat(byRole).isEmpty();
+    }
+
+    @Test
+    @DisplayName("페이징: ManyToOne fetch join은 DB에서 limit으로 자르고, 내용 1번 + 건수 1번 = 쿼리 2번")
+    void paging() {
+        Page<Member> page = memberRepository.search(MemberSearchCond.empty(), PageRequest.of(1, 4)); // 두 번째 페이지
+
+        page.getContent().forEach(m -> m.getDepartment().getName());
+
+        assertThat(page.getContent()).hasSize(4);
+        assertThat(page.getTotalElements()).isEqualTo(10);
+        assertThat(page.getTotalPages()).isEqualTo(3);
+        assertThat(stats.getPrepareStatementCount()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("마지막 페이지에서 내용이 페이지 크기보다 적으면 건수 쿼리를 생략한다 (PageableExecutionUtils)")
+    void pagingSkipsCountQuery() {
+        Page<Member> page = memberRepository.search(MemberSearchCond.empty(), PageRequest.of(0, 20));
+
+        assertThat(page.getTotalElements()).isEqualTo(10);
+        assertThat(stats.getPrepareStatementCount()).isEqualTo(1);
     }
 }

@@ -37,7 +37,8 @@ public class MenuInitializer implements ApplicationRunner {
                 new Menu("사용자 관리", "/admin/members", 900, ADMIN),
                 new Menu("부서 관리", "/admin/departments", 910, ADMIN),
                 new Menu("직급 관리", "/admin/positions", 920, ADMIN),
-                new Menu("메뉴 권한", "/admin/menus", 930, ADMIN)
+                new Menu("메뉴 권한", "/admin/menus", 930, ADMIN),
+                new Menu("공통코드 관리", "/admin/codes", 940, ADMIN)
         );
         int added = 0;
         for (Menu menu : defaults) {

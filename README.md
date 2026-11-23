@@ -7,7 +7,7 @@
 
 ## 기술 스택 (예정)
 
-Java 17 · Spring Boot 3.3 · Spring Data JPA · QueryDSL · Thymeleaf · Spring Security · MySQL 8 · Spring Batch · JUnit 5 · Docker · GitHub Actions · AWS EC2
+Java 17 · Spring Boot 3.3 · Spring Data JPA · QueryDSL · Thymeleaf · Spring Security · Apache POI · MySQL 8 · Spring Batch · JUnit 5 · Docker · GitHub Actions · AWS EC2
 
 ## 실행 방법
 
@@ -19,12 +19,12 @@ docker compose up -d              # MySQL 실행
 ./gradlew bootRun                 # http://localhost:8080
 ```
 
-- 처음 뜰 때 샘플 부서 6개, 직급 5개, 사용자 10명, 메뉴 5개가 자동으로 들어갑니다.
+- 처음 뜰 때 샘플 부서 6개, 직급 5개, 사용자 40명(페이징 확인용 직원 30명 포함), 메뉴, 공통코드 그룹 12개가 자동으로 들어갑니다.
 - 샘플 계정 (비밀번호는 모두 `pass1234`)
 
 | 아이디 | 이름 | 역할 | 확인할 수 있는 것 |
 |---|---|---|---|
-| `admin` | 관리자 (인사팀) | 관리자 | 사용자·부서·직급·메뉴 권한 관리 |
+| `admin` | 관리자 (인사팀) | 관리자 | 사용자·부서·직급·공통코드·메뉴 권한 관리, 사용자 엑셀 다운로드 |
 | `dev1`, `dev2` | 김개발, 오코드 (개발팀) | 직원 | 관리 메뉴가 안 보이고, 주소로 들어가면 403 |
 | `devlead` | 이팀장 (개발팀) | 팀장 | |
 | `bizhead` | 박본부 (사업본부) | 부서장 | |
@@ -49,16 +49,18 @@ docker compose up -d              # MySQL 실행
 | # | 문제 | 해결 | 결과 |
 |---|---|---|---|
 | 01 | [사용자 목록 N+1](docs/troubleshooting/01-사용자-목록-N+1.md) | QueryDSL fetch join | 쿼리 11번 → 1번 |
+| 02 | [컬렉션 fetch join + 페이징](docs/troubleshooting/02-공통코드-페이징-컬렉션-fetch-join.md) | batch fetch size + 오류로 막기 | 읽은 엔티티 180개 → 60개, 쿼리 12번 → 3번 |
 
 ## 프로젝트 구조
 
 ```
 src/main/java/com/example/purchase
-├── common/      BaseEntity(생성·수정 시각·작성자), 업무 예외, 공통 예외 처리
+├── common/      BaseEntity(생성·수정 시각·작성자), 업무 예외, 공통 예외 처리, 엑셀 쓰기(POI), 페이지 링크
 ├── config/      JPA Auditing, QueryDSL, Spring Security, 샘플 데이터
 ├── security/    로그인 사용자(UserDetails), 메뉴 기반 URL 권한 검사
 ├── menu/        메뉴와 역할별 권한
-├── org/         사용자·부서·직급 (조직도)
+├── org/         사용자·부서·직급 (조직도), 사용자 엑셀 다운로드
+├── code/        공통코드 그룹·코드 (품목 분류, 단위 등)
 └── home/        대시보드
 src/main/resources/templates
 ├── layout/      공통 레이아웃 (Thymeleaf Layout Dialect)

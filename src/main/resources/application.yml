@@ -7,6 +7,18 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # 지연 로딩할 때 같은 종류의 엔티티/컬렉션을 IN 절로 최대 100개씩 묶어서 읽는다 (N+1 → 1)
+        # docs/troubleshooting/02 참고
+        default_batch_fetch_size: 100
+        query:
+          # 컬렉션 fetch join + 페이징을 쓰면 경고만 찍고 전체를 메모리에 올려 자르는데, 이걸 아예 오류로 만든다
+          fail_on_pagination_over_collection_fetch: true
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true   # 주소의 ?page=1 이 첫 페이지 (화면에 보이는 번호와 같게)
+        default-page-size: 10
+        max-page-size: 100
   thymeleaf:
     cache: false            # 화면 수정 후 새로고침만 하면 바로 반영
 

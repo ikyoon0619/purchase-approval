@@ -36,6 +36,7 @@ public class LocalDataInitializer implements ApplicationRunner {
     private final PositionRepository positionRepository;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CodeInitializer codeInitializer;
 
     @Override
     @Transactional
@@ -57,6 +58,40 @@ public class LocalDataInitializer implements ApplicationRunner {
         if (memberRepository.count() == 0) {
             insertSampleMembers();
         }
+        // 4단계: 페이징을 눈으로 확인할 수 있게 직원 30명과 코드 그룹을 더 넣는다
+        if (!memberRepository.existsByLoginId("emp01")) {
+            insertPagingSampleMembers();
+        }
+        insertSampleCodeGroups();
+    }
+
+    private void insertPagingSampleMembers() {
+        Map<String, Position> pos = new java.util.HashMap<>();
+        positionRepository.findAll().forEach(p -> pos.put(p.getName(), p));
+        String[] teams = {"D110", "D120", "D210", "D220"};
+        String[] lastNames = {"김", "이", "박", "최", "정", "강", "조", "윤", "장", "임"};
+        String[] firstNames = {"민준", "서연", "도윤", "하은", "시우"};
+        String pw = passwordEncoder.encode(SAMPLE_PASSWORD);
+        for (int i = 1; i <= 30; i++) {
+            String loginId = String.format("emp%02d", i);
+            String name = lastNames[i % lastNames.length] + firstNames[(i / 10 + i) % firstNames.length]; // 30명 이름이 겹치지 않게
+            Department dept = departmentRepository.findByCode(teams[i % teams.length]).orElseThrow();
+            memberRepository.save(new Member(loginId, pw, name, loginId + "@example.com",
+                    dept, pos.get(i % 3 == 0 ? "대리" : "사원"), Role.EMPLOYEE));
+        }
+        log.info("페이징 확인용 직원 30명을 넣었습니다.");
+    }
+
+    private void insertSampleCodeGroups() {
+        codeInitializer.add("BUDGET_TYPE", "예산 구분", new String[][]{{"OPEX", "운영비"}, {"CAPEX", "투자비"}});
+        codeInitializer.add("PAYMENT_TERMS", "결제 조건", new String[][]{{"NET30", "월말 30일"}, {"NET60", "월말 60일"}, {"PREPAY", "선결제"}});
+        codeInitializer.add("DELIVERY_PLACE", "납품 장소", new String[][]{{"HQ", "본사"}, {"WH1", "1창고"}, {"LAB", "연구소"}});
+        codeInitializer.add("REJECT_REASON", "반려 사유", new String[][]{{"BUDGET", "예산 초과"}, {"DUP", "중복 요청"}, {"SPEC", "사양 부적합"}});
+        codeInitializer.add("CURRENCY", "통화", new String[][]{{"KRW", "원"}, {"USD", "달러"}});
+        codeInitializer.add("VENDOR_TYPE", "거래처 유형", new String[][]{{"MAKER", "제조사"}, {"DIST", "유통사"}, {"SERVICE", "서비스"}});
+        codeInitializer.add("STORAGE", "보관 위치", new String[][]{{"A1", "A동 1층"}, {"A2", "A동 2층"}, {"B1", "B동 1층"}});
+        codeInitializer.add("ASSET_TYPE", "자산 구분", new String[][]{{"ASSET", "자산"}, {"EXPENSE", "비용"}});
+        codeInitializer.add("URGENCY", "긴급도", new String[][]{{"NORMAL", "보통"}, {"HIGH", "긴급"}});
     }
 
     private void insertSampleMembers() {

@@ -1,0 +1,17 @@
+<!--
+  페이지 번호 줄. 사용법: <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+  page.number는 0부터, 화면과 주소의 번호는 1부터다.
+  현재 페이지 앞뒤로 최대 10개 번호를 보여 준다.
+-->
+<nav th:fragment="pagination(page)" class="pagination" th:if="${page.totalPages > 1}"
+     xmlns:th="http://www.thymeleaf.org"
+     th:with="current=${page.number + 1},
+              start=${T(java.lang.Math).max(1, current - 4)},
+              end=${T(java.lang.Math).min(page.totalPages, start + 9)}">
+    <a th:if="${page.hasPrevious()}" th:href="${@pageLinks.url(current - 1)}">이전</a>
+    <th:block th:each="i : ${#numbers.sequence(start, end)}">
+        <strong th:if="${i == current}" th:text="${i}">1</strong>
+        <a th:unless="${i == current}" th:href="${@pageLinks.url(i)}" th:text="${i}">2</a>
+    </th:block>
+    <a th:if="${page.hasNext()}" th:href="${@pageLinks.url(current + 1)}">다음</a>
+</nav>
