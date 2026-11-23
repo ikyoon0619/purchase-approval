@@ -53,6 +53,12 @@ docker compose up -d              # MySQL 실행
 - 회수는 첫 결재 전에만, 반려는 의견 필수, 반려된 문서는 "복사해서 다시 작성".
 - 같은 문서를 동시에 처리하면 한 건만 반영됩니다 (트러블슈팅 04).
 
+## 거래처 사업자 상태 (국세청 API)
+
+- 공공데이터포털 "국세청 사업자등록정보 상태조회" API로 계속/휴업/폐업을 확인합니다. 거래처 등록 시 자동, 목록에서 한 곳 또는 전체(100곳씩 나눠 호출).
+- 키는 `.env`의 `NTS_SERVICE_KEY`("Decoding" 키). 없으면 호출하지 않고 안내만 합니다. API가 실패하면 "확인 안 됨"으로 저장합니다.
+- API 호출은 트랜잭션 밖에서, 연결 2초·응답 3초 타임아웃 (트러블슈팅 06).
+
 ## 발주·재고
 
 - 구매팀이 최종 승인된 요청서로 발주서(`PO-yyyyMM-0001`)를 만들고, 물건이 오면 줄마다 실제 입고 수량을 적어 입고 처리합니다.
@@ -69,6 +75,7 @@ docker compose up -d              # MySQL 실행
 | 03 | [OSIV 끄고 LazyInitializationException](docs/troubleshooting/03-open-in-view-끄고-LazyInitializationException.md) | fetch join + 화면에는 DTO | 검색할 때만 나던 500 → 200 |
 | 04 | [중간 결재는 version이 안 올라가는 문제](docs/troubleshooting/04-중간-결재는-version이-안-올라가는-문제.md) | 루트에 `OPTIMISTIC_FORCE_INCREMENT` | 회수·승인 동시 처리: 둘 다 성공(깨진 상태) → 하나만 성공 |
 | 05 | [동시 입고 재고 유실](docs/troubleshooting/05-동시-입고-재고-유실.md) | `SELECT … FOR UPDATE` + 잠금 순서 고정 | 동시 입고 5+3: 3개(유실) → 10명 동시 +1: 항상 10개 |
+| 06 | [트랜잭션 안 외부 API 호출](docs/troubleshooting/06-트랜잭션-안-외부-API-커넥션-풀.md) | 읽기·쓰기 트랜잭션을 나누고 API는 그 밖에서 + 타임아웃 | 풀 2개에서 느린 API 2건 대기 중 다른 조회: 실패 → 즉시 성공 |
 
 ## 프로젝트 구조
 

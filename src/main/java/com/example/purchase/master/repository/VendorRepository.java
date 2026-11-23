@@ -25,4 +25,6 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
 
     /** 요청서에서 고를 수 있는 거래처 (BR-09) */
     List<Vendor> findByUsedTrueAndStatusInOrderByNameAsc(Collection<VendorStatus> statuses);
+
+    List<Vendor> findByUsedTrueOrderByIdAsc();
 }

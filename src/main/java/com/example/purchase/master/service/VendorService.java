@@ -66,4 +66,14 @@ public class VendorService {
             vendor.changeStatus(form.getStatus(), LocalDateTime.now());
         }
     }
+
+    /** 국세청 확인 결과 저장. 짧은 쓰기 트랜잭션 (API 호출은 이 바깥에서 끝난 뒤) */
+    @Transactional
+    public void applyStatus(Long id, VendorStatus status, LocalDateTime checkedAt) {
+        get(id).changeStatus(status, checkedAt);
+    }
+
+    public List<Vendor> usedVendors() {
+        return vendorRepository.findByUsedTrueOrderByIdAsc();
+    }
 }
