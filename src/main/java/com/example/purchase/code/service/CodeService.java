@@ -13,7 +13,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.purchase.code.domain.CommonCode;
+
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +45,14 @@ public class CodeService {
     /** 다른 화면의 select 박스용 (예: 품목 분류) */
     public List<CodeItem> activeCodes(String groupCode) {
         return commonCodeRepository.findActiveCodes(groupCode).stream().map(CodeItem::from).toList();
+    }
+
+    /** 코드 → 이름 표. 목록 화면에서 저장된 코드 값(IT)을 이름(IT기기)으로 바꿔 보여 줄 때 쓴다 */
+    public Map<String, String> codeNames(String groupCode) {
+        return codeGroupRepository.findWithCodes(groupCode)
+                .<Map<String, String>>map(g -> g.getCodes().stream()
+                        .collect(Collectors.toMap(CommonCode::getCode, CommonCode::getName, (a, b) -> a, LinkedHashMap::new)))
+                .orElseGet(Map::of);
     }
 
     @Transactional

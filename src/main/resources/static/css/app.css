@@ -82,3 +82,26 @@ input.narrow { width: 80px; }
 .inline-form { flex-direction: row; align-items: flex-end; flex-wrap: wrap; max-width: none; }
 .inline-form label:first-child { flex: 1; min-width: 200px; }
 code { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+
+/* 5단계: 품목·거래처, 구매요청 */
+.num { text-align: right !important; }
+.status.warn { background: #fff4e5; color: #b26a00; }
+.status.muted { background: #f1f1f1; color: #666; }
+.form.wide { max-width: none; }
+textarea { padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; resize: vertical; }
+input[type=date] { padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+.table.lines td { vertical-align: top; }
+.table.lines select { width: 100%; }
+.table.lines input.price { width: 130px; text-align: right; }
+.table.lines input.qty { text-align: right; }
+.total { font-size: 16px; color: var(--primary); }
+.info { display: grid; grid-template-columns: 110px 1fr; gap: 10px 16px; margin: 0; }
+.info dt { color: var(--muted); }
+.info dd { margin: 0; }
+.pre { white-space: pre-wrap; }
+.files { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-direction: column; gap: 6px; }
+.link { color: var(--primary); }
+.link:hover { text-decoration: underline; }
+.btn.danger { color: #c62828; border-color: #f3c2c2; }
+h1 .status { font-size: 13px; vertical-align: middle; margin-left: 6px; }
+.table code, .table .status, .table td.num, .table td.nowrap { white-space: nowrap; }

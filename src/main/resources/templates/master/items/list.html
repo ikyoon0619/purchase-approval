@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>품목 관리</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1>품목 관리</h1>
+        <a class="btn" th:href="@{/master/items/new}">품목 등록</a>
+    </div>
+    <form class="card search" th:action="@{/master/items}" method="get">
+        <input type="text" name="keyword" placeholder="품목명 또는 코드" th:value="${keyword}">
+        <select name="category">
+            <option value="">전체 분류</option>
+            <option th:each="c : ${categories}" th:value="${c.key}" th:text="${c.value}"
+                    th:selected="${c.key == category}">IT기기</option>
+        </select>
+        <button type="submit" class="btn secondary">검색</button>
+    </form>
+    <section class="card">
+        <p class="muted">총 <strong th:text="${page.totalElements}">0</strong>개</p>
+        <table class="table">
+            <thead><tr><th>코드</th><th>품목명</th><th>분류</th><th>단위</th><th class="num">기준 단가</th><th>상태</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="i : ${page.content}">
+                <td><code th:text="${i.code}">IT-0001</code></td>
+                <td th:text="${i.name}">노트북</td>
+                <!-- 저장된 값은 코드(IT), 화면에는 이름(IT기기) -->
+                <td th:text="${categories[i.categoryCode] ?: i.categoryCode}">IT기기</td>
+                <td th:text="${units[i.unitCode] ?: i.unitCode}">개</td>
+                <td class="num" th:text="${#numbers.formatInteger(i.standardPrice, 1, 'COMMA')} + '원'">1,500,000원</td>
+                <td><span th:class="${i.used} ? 'status ok' : 'status off'" th:text="${i.used} ? '사용' : '중지'">사용</span></td>
+                <td><a th:href="@{/master/items/{id}/edit(id=${i.id})}">수정</a></td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="muted">조건에 맞는 품목이 없습니다.</td></tr>
+            </tbody>
+        </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>

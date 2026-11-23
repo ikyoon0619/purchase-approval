@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>구매요청서</title></head>
+<body>
+<main layout:fragment="content">
+    <!-- r은 엔티티가 아니라 RequestDetail(값 객체). 여기서는 DB를 더 읽지 않는다 (open-in-view: false) -->
+    <div class="page-head">
+        <h1><span th:text="${r.title}">노트북 구매</span>
+            <span th:class="'status ' + ${r.status.css}" th:text="${r.status.label}">임시저장</span></h1>
+        <div class="search">
+            <a class="btn secondary" th:href="@{/requests}">목록</a>
+            <th:block th:if="${r.editable}">
+                <form class="inline" th:action="@{/requests/{id}/delete(id=${r.id})}" method="post"
+                      onsubmit="return confirm('임시저장한 요청서를 삭제할까요?');">
+                    <button type="submit" class="btn secondary danger">삭제</button>
+                </form>
+                <a class="btn" th:href="@{/requests/{id}/edit(id=${r.id})}">수정</a>
+            </th:block>
+        </div>
+    </div>
+
+    <section class="card">
+        <dl class="info">
+            <dt>문서번호</dt><dd><code th:text="${r.requestNo}">PR-202611-0001</code></dd>
+            <dt>기안자</dt><dd th:text="${r.requesterName} + ' (' + ${r.departmentName} + ')'">김개발 (개발팀)</dd>
+            <dt>구매 목적</dt><dd th:text="${r.purposeName}">업무용</dd>
+            <dt>거래처</dt><dd th:text="${r.vendorName} + ' · ' + ${r.vendorBizNo}">(주)오피스몰 · 123-45-67890</dd>
+            <dt>작성일</dt><dd th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm')}">2026-11-23 10:00</dd>
+            <dt>구매 사유</dt><dd class="pre" th:text="${r.reason ?: '-'}">사유</dd>
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2>품목</h2>
+        <table class="table">
+            <thead><tr><th>#</th><th>코드</th><th>품목</th><th class="num">수량</th><th>단위</th><th class="num">단가</th><th class="num">금액</th></tr></thead>
+            <tbody>
+            <tr th:each="l : ${r.items}">
+                <td th:text="${l.lineNo}">1</td>
+                <td><code th:text="${l.itemCode}">IT-0001</code></td>
+                <td th:text="${l.itemName}">노트북</td>
+                <td class="num" th:text="${#numbers.formatInteger(l.quantity, 1, 'COMMA')}">2</td>
+                <td th:text="${l.unitName}">개</td>
+                <td class="num" th:text="${#numbers.formatInteger(l.unitPrice, 1, 'COMMA')}">1,500,000</td>
+                <td class="num" th:text="${#numbers.formatInteger(l.amount, 1, 'COMMA')}">3,000,000</td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr><th colspan="6" class="num">합계</th>
+                <th class="num total" th:text="${#numbers.formatInteger(r.totalAmount, 1, 'COMMA')} + '원'">3,000,000원</th></tr>
+            </tfoot>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>첨부파일 <span class="badge" th:text="${r.attachments.size()}">0</span></h2>
+        <ul class="files" th:unless="${r.attachments.isEmpty()}">
+            <li th:each="f : ${r.attachments}">
+                <a class="link" th:href="@{/requests/{id}/attachments/{fid}(id=${r.id}, fid=${f.id})}" th:text="${f.originalName}">견적서.pdf</a>
+                <span class="muted" th:text="${f.sizeText()}">120 KB</span>
+            </li>
+        </ul>
+        <p class="muted" th:if="${r.attachments.isEmpty()}">첨부파일이 없습니다.</p>
+    </section>
+
+    <section class="card muted">결재선과 상신은 6단계에서 붙습니다.</section>
+</main>
+</body>
+</html>

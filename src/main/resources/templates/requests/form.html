@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>구매요청서 작성</title></head>
+<body>
+<main layout:fragment="content">
+    <h1 th:text="${id == null} ? '구매요청서 작성' : '구매요청서 수정'">구매요청서 작성</h1>
+
+    <!-- 파일을 보내려면 enctype="multipart/form-data" 가 꼭 필요하다 -->
+    <form id="request-form" class="card form wide" th:object="${form}" method="post" enctype="multipart/form-data"
+          th:action="${id == null} ? @{/requests} : @{/requests/{id}(id=${id})}">
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}" th:errors="*{global}">오류</div>
+
+        <label>제목 <input type="text" th:field="*{title}" placeholder="예) 신규 입사자 노트북 구매">
+            <span class="field-error" th:errors="*{title}"></span></label>
+        <div class="row">
+            <label>구매 목적
+                <select th:field="*{purposeCode}">
+                    <option value="">선택</option>
+                    <option th:each="p : ${purposes}" th:value="${p.code}" th:text="${p.name}">업무용</option>
+                </select>
+                <span class="field-error" th:errors="*{purposeCode}"></span>
+            </label>
+            <label>거래처 (휴업·폐업 거래처는 목록에 없음)
+                <select th:field="*{vendorId}">
+                    <option value="">선택</option>
+                    <option th:each="v : ${vendors}" th:value="${v.id}"
+                            th:text="${v.name} + ' · ' + ${v.bizNoFormatted} + (${v.status.name() == 'UNKNOWN'} ? ' (상태 확인 안 됨)' : '')">(주)오피스몰</option>
+                </select>
+                <span class="field-error" th:errors="*{vendorId}"></span>
+            </label>
+        </div>
+        <label>구매 사유 <textarea th:field="*{reason}" rows="3" placeholder="왜 필요한지 적어 주세요."></textarea>
+            <span class="field-error" th:errors="*{reason}"></span></label>
+
+        <!-- 품목 줄 -->
+        <div>
+            <div class="page-head"><strong>품목</strong>
+                <button type="button" class="btn secondary small" id="add-line">+ 줄 추가</button></div>
+            <span class="field-error" th:errors="*{items}"></span>
+            <table class="table lines">
+                <thead><tr><th>품목</th><th class="num">수량</th><th class="num">단가(원)</th><th class="num">금액(원)</th><th></th></tr></thead>
+                <tbody id="lines">
+                <tr class="line" th:each="line, st : *{items}">
+                    <td>
+                        <select class="item" th:field="*{items[__${st.index}__].itemId}">
+                            <option value="">품목 선택</option>
+                            <option th:each="i : ${items}" th:value="${i.id}" th:attr="data-price=${i.standardPrice}"
+                                    th:text="${i.name} + ' (' + ${units[i.unitCode] ?: i.unitCode} + ')'">노트북 (개)</option>
+                        </select>
+                        <span class="field-error" th:errors="*{items[__${st.index}__].itemId}"></span>
+                    </td>
+                    <td class="num"><input type="number" class="qty narrow" min="1" th:field="*{items[__${st.index}__].quantity}">
+                        <span class="field-error" th:errors="*{items[__${st.index}__].quantity}"></span></td>
+                    <td class="num"><input type="number" class="price" min="0" step="1" th:field="*{items[__${st.index}__].unitPrice}">
+                        <span class="field-error" th:errors="*{items[__${st.index}__].unitPrice}"></span></td>
+                    <td class="num amount">0</td>
+                    <td><button type="button" class="btn-link remove-line">삭제</button></td>
+                </tr>
+                </tbody>
+                <tfoot><tr><th colspan="3" class="num">합계 (저장할 때 서버가 다시 계산합니다)</th><th class="num total" id="total">0</th><th></th></tr></tfoot>
+            </table>
+        </div>
+
+        <!-- 첨부 -->
+        <div>
+            <strong>첨부파일</strong> <span class="muted">(최대 5개, 개당 10MB. 입력 오류로 화면이 다시 뜨면 파일은 다시 골라야 합니다)</span>
+            <ul class="files" th:unless="${attachments.isEmpty()}">
+                <li th:each="f : ${attachments}">
+                    <label class="check"><input type="checkbox" name="deleteAttachmentIds" th:value="${f.id}"> 삭제</label>
+                    <span th:text="${f.originalName}">견적서.pdf</span> <span class="muted" th:text="${f.sizeText()}">120 KB</span>
+                </li>
+            </ul>
+            <input type="file" name="files" multiple>
+        </div>
+
+        <div class="actions">
+            <a class="btn secondary" th:href="${id == null} ? @{/requests} : @{/requests/{id}(id=${id})}">취소</a>
+            <button type="submit" class="btn">임시저장</button>
+        </div>
+    </form>
+
+    <!-- 새 줄의 틀. 이름(items[0]...)은 추가·삭제할 때마다 JS가 다시 매긴다 -->
+    <template id="line-template">
+        <tr class="line">
+            <td><select class="item" name="items[0].itemId">
+                <option value="">품목 선택</option>
+                <option th:each="i : ${items}" th:value="${i.id}" th:attr="data-price=${i.standardPrice}"
+                        th:text="${i.name} + ' (' + ${units[i.unitCode] ?: i.unitCode} + ')'">노트북 (개)</option>
+            </select></td>
+            <td class="num"><input type="number" class="qty narrow" min="1" name="items[0].quantity" value="1"></td>
+            <td class="num"><input type="number" class="price" min="0" step="1" name="items[0].unitPrice"></td>
+            <td class="num amount">0</td>
+            <td><button type="button" class="btn-link remove-line">삭제</button></td>
+        </tr>
+    </template>
+    <script th:src="@{/js/request-form.js}"></script>
+</main>
+</body>
+</html>

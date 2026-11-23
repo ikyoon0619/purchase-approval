@@ -19,16 +19,17 @@ docker compose up -d              # MySQL 실행
 ./gradlew bootRun                 # http://localhost:8080
 ```
 
-- 처음 뜰 때 샘플 부서 6개, 직급 5개, 사용자 40명(페이징 확인용 직원 30명 포함), 메뉴, 공통코드 그룹 12개가 자동으로 들어갑니다.
+- 처음 뜰 때 샘플 부서 6개, 직급 5개, 사용자 40명(페이징 확인용 직원 30명 포함), 메뉴, 공통코드 그룹 12개, 품목 12개, 거래처 6곳(휴업·폐업 포함), dev1의 요청서 3건이 자동으로 들어갑니다.
+- 첨부파일은 `./uploads`에 저장됩니다 (`UPLOAD_DIR` 환경변수로 변경).
 - 샘플 계정 (비밀번호는 모두 `pass1234`)
 
 | 아이디 | 이름 | 역할 | 확인할 수 있는 것 |
 |---|---|---|---|
 | `admin` | 관리자 (인사팀) | 관리자 | 사용자·부서·직급·공통코드·메뉴 권한 관리, 사용자 엑셀 다운로드 |
-| `dev1`, `dev2` | 김개발, 오코드 (개발팀) | 직원 | 관리 메뉴가 안 보이고, 주소로 들어가면 403 |
+| `dev1`, `dev2` | 김개발, 오코드 (개발팀) | 직원 | 구매요청서 작성(dev1은 샘플 3건), 관리 메뉴는 403 |
 | `devlead` | 이팀장 (개발팀) | 팀장 | |
 | `bizhead` | 박본부 (사업본부) | 부서장 | |
-| `buylead` | 강구매 (구매팀) | 구매팀 | |
+| `buylead` | 강구매 (구매팀) | 구매팀 | 품목·거래처 관리, 모든 요청서 보기 |
 - 끄기: `Ctrl+C`, MySQL까지 끄려면 `docker compose down` (데이터는 남음)
 
 테스트 (Docker 없이 메모리 H2로 실행):
@@ -50,16 +51,19 @@ docker compose up -d              # MySQL 실행
 |---|---|---|---|
 | 01 | [사용자 목록 N+1](docs/troubleshooting/01-사용자-목록-N+1.md) | QueryDSL fetch join | 쿼리 11번 → 1번 |
 | 02 | [컬렉션 fetch join + 페이징](docs/troubleshooting/02-공통코드-페이징-컬렉션-fetch-join.md) | batch fetch size + 오류로 막기 | 읽은 엔티티 180개 → 60개, 쿼리 12번 → 3번 |
+| 03 | [OSIV 끄고 LazyInitializationException](docs/troubleshooting/03-open-in-view-끄고-LazyInitializationException.md) | fetch join + 화면에는 DTO | 검색할 때만 나던 500 → 200 |
 
 ## 프로젝트 구조
 
 ```
 src/main/java/com/example/purchase
-├── common/      BaseEntity(생성·수정 시각·작성자), 업무 예외, 공통 예외 처리, 엑셀 쓰기(POI), 페이지 링크
+├── common/      BaseEntity(생성·수정 시각·작성자), 업무 예외, 공통 예외 처리, 엑셀 쓰기(POI), 페이지 링크, 첨부 저장
 ├── config/      JPA Auditing, QueryDSL, Spring Security, 샘플 데이터
 ├── security/    로그인 사용자(UserDetails), 메뉴 기반 URL 권한 검사
 ├── menu/        메뉴와 역할별 권한
 ├── org/         사용자·부서·직급 (조직도), 사용자 엑셀 다운로드
+├── master/      품목, 거래처 (기준정보)
+├── request/     구매요청서 작성·임시저장·수정·삭제, 첨부파일, 내 요청 목록
 ├── code/        공통코드 그룹·코드 (품목 분류, 단위 등)
 └── home/        대시보드
 src/main/resources/templates

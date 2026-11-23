@@ -34,6 +34,9 @@ public class MenuInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         List<Menu> defaults = List.of(
                 new Menu("대시보드", "/", 10, ALL),
+                new Menu("구매요청", "/requests", 20, ALL),
+                new Menu("품목 관리", "/master/items", 500, EnumSet.of(Role.PURCHASING, Role.ADMIN)),
+                new Menu("거래처 관리", "/master/vendors", 510, EnumSet.of(Role.PURCHASING, Role.ADMIN)),
                 new Menu("사용자 관리", "/admin/members", 900, ADMIN),
                 new Menu("부서 관리", "/admin/departments", 910, ADMIN),
                 new Menu("직급 관리", "/admin/positions", 920, ADMIN),

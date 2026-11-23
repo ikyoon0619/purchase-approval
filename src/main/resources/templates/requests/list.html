@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>내 구매요청</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1>내 구매요청</h1>
+        <div class="search">
+            <a class="btn secondary" th:href="${@pageLinks.withSameQuery('/requests/excel')}">엑셀 다운로드</a>
+            <a class="btn" th:href="@{/requests/new}">요청서 작성</a>
+        </div>
+    </div>
+
+    <form class="card search" th:action="@{/requests}" method="get">
+        <input type="text" name="keyword" placeholder="제목" th:value="${cond.keyword()}">
+        <select name="status">
+            <option value="">전체 상태</option>
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${s == cond.status()}">임시저장</option>
+        </select>
+        <input type="date" name="from" th:value="${cond.from()}" title="작성일 시작">
+        <span class="muted">~</span>
+        <input type="date" name="to" th:value="${cond.to()}" title="작성일 끝">
+        <button type="submit" class="btn secondary">검색</button>
+    </form>
+
+    <section class="card">
+        <p class="muted">총 <strong th:text="${page.totalElements}">0</strong>건</p>
+        <table class="table">
+            <thead><tr><th>문서번호</th><th>제목</th><th>거래처</th><th>품목</th><th class="num">합계</th><th>상태</th><th>작성일</th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${page.content}">
+                <td><code th:text="${r.requestNo}">PR-202611-0001</code></td>
+                <td><a class="link" th:href="@{/requests/{id}(id=${r.id})}" th:text="${r.title}">노트북 구매</a></td>
+                <td th:text="${r.vendorName}">(주)오피스몰</td>
+                <td th:text="${r.itemSummary}">노트북 외 2건</td>
+                <td class="num" th:text="${#numbers.formatInteger(r.totalAmount, 1, 'COMMA')} + '원'">1,500,000원</td>
+                <td><span th:class="'status ' + ${r.status.css}" th:text="${r.status.label}">임시저장</span></td>
+                <td class="muted nowrap" th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd')}">2026-11-23</td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="muted">조건에 맞는 요청서가 없습니다.</td></tr>
+            </tbody>
+        </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>

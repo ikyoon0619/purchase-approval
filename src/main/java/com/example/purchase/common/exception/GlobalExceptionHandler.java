@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -24,6 +25,16 @@ public class GlobalExceptionHandler {
         response.setStatus(e.getErrorCode().getStatus().value());
         model.addAttribute("code", e.getErrorCode().getCode());
         model.addAttribute("message", e.getMessage());
+        return "error/error";
+    }
+
+    /** 첨부파일이 max-file-size(10MB) / max-request-size(50MB)를 넘으면 컨트롤러에 오기 전에 터진다 */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public String handleTooLarge(HttpServletRequest request, HttpServletResponse response, Model model) {
+        log.warn("[{}] {} 업로드 크기 초과", ErrorCode.FILE_TOO_LARGE.getCode(), request.getRequestURI());
+        response.setStatus(ErrorCode.FILE_TOO_LARGE.getStatus().value());
+        model.addAttribute("code", ErrorCode.FILE_TOO_LARGE.getCode());
+        model.addAttribute("message", ErrorCode.FILE_TOO_LARGE.getMessage());
         return "error/error";
     }
 

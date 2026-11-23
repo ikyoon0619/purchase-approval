@@ -17,6 +17,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.purchase.master.domain.Item;
+import com.example.purchase.master.domain.Vendor;
+import com.example.purchase.master.domain.VendorStatus;
+import com.example.purchase.master.repository.ItemRepository;
+import com.example.purchase.master.repository.VendorRepository;
+import com.example.purchase.request.domain.PurchaseRequest;
+import com.example.purchase.request.repository.PurchaseRequestRepository;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,6 +46,9 @@ public class LocalDataInitializer implements ApplicationRunner {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final CodeInitializer codeInitializer;
+    private final ItemRepository itemRepository;
+    private final VendorRepository vendorRepository;
+    private final PurchaseRequestRepository requestRepository;
 
     @Override
     @Transactional
@@ -63,6 +75,69 @@ public class LocalDataInitializer implements ApplicationRunner {
             insertPagingSampleMembers();
         }
         insertSampleCodeGroups();
+        // 5단계: 품목·거래처, dev1의 임시저장 요청서
+        if (itemRepository.count() == 0) {
+            insertMasterData();
+        }
+        if (requestRepository.count() == 0) {
+            insertSampleRequests();
+        }
+    }
+
+    private void insertMasterData() {
+        Object[][] items = {
+                {"IT-0001", "노트북 14인치", "IT", "EA", 1_650_000},
+                {"IT-0002", "27인치 모니터", "IT", "EA", 320_000},
+                {"IT-0003", "무선 키보드·마우스 세트", "IT", "SET", 59_000},
+                {"IT-0004", "USB-C 도킹 스테이션", "IT", "EA", 189_000},
+                {"OF-0001", "A4 복사용지 (2,500매)", "OFFICE", "BOX", 27_000},
+                {"OF-0002", "볼펜 12자루", "OFFICE", "SET", 6_500},
+                {"OF-0003", "화이트보드 마커 4색", "OFFICE", "SET", 7_800},
+                {"CS-0001", "토너 카트리지 (검정)", "CONSUMABLE", "EA", 98_000},
+                {"CS-0002", "생수 2L × 6", "CONSUMABLE", "BOX", 5_900},
+                {"FN-0001", "사무용 의자", "FURNITURE", "EA", 280_000},
+                {"FN-0002", "높이조절 책상", "FURNITURE", "EA", 450_000},
+                {"SW-0001", "오피스 프로그램 1년", "SOFTWARE", "LICENSE", 119_000},
+        };
+        for (Object[] r : items) {
+            itemRepository.save(new Item((String) r[0], (String) r[1], (String) r[2], (String) r[3],
+                    java.math.BigDecimal.valueOf((Integer) r[4])));
+        }
+        // 사업자번호는 예시 값 (실제 사업자 아님)
+        Object[][] vendors = {
+                {"1018100001", "(주)오피스몰", "김오피", VendorStatus.ACTIVE},
+                {"1018100002", "테크디바이스(주)", "이테크", VendorStatus.ACTIVE},
+                {"1018100003", "한빛가구", "박가구", VendorStatus.ACTIVE},
+                {"1018100004", "소프트라이선스코리아", "최소프", VendorStatus.UNKNOWN},
+                {"1018100005", "대명문구 (휴업)", "정문구", VendorStatus.SUSPENDED},
+                {"1018100006", "옛날상사 (폐업)", "강옛날", VendorStatus.CLOSED},
+        };
+        for (Object[] r : vendors) {
+            Vendor v = new Vendor((String) r[0], (String) r[1], (String) r[2]);
+            v.changeStatus((VendorStatus) r[3], r[3] == VendorStatus.UNKNOWN ? null : java.time.LocalDateTime.now());
+            vendorRepository.save(v);
+        }
+        log.info("샘플 품목 {}개, 거래처 {}곳을 넣었습니다.", items.length, vendors.length);
+    }
+
+    private void insertSampleRequests() {
+        Member dev1 = memberRepository.findByLoginIdWithDepartment("dev1").orElse(null);
+        if (dev1 == null) {
+            return;
+        }
+        List<Item> items = itemRepository.findAll();
+        List<Vendor> vendors = vendorRepository.findAll();
+        String[] titles = {"신규 입사자 노트북·모니터 구매", "개발팀 사무용품 보충", "회의실 화이트보드 마커와 토너"};
+        int[][] lines = {{0, 2, 1, 2}, {4, 3, 5, 2}, {6, 4, 7, 1}}; // {품목 index, 수량, 품목 index, 수량}
+        for (int n = 0; n < titles.length; n++) {
+            PurchaseRequest r = PurchaseRequest.draft(dev1, titles[n], "WORK", "샘플 요청서입니다.", vendors.get(n == 0 ? 1 : 0));
+            r.replaceItems(List.of(
+                    new PurchaseRequest.Line(items.get(lines[n][0]), lines[n][1], items.get(lines[n][0]).getStandardPrice()),
+                    new PurchaseRequest.Line(items.get(lines[n][2]), lines[n][3], items.get(lines[n][2]).getStandardPrice())));
+            requestRepository.save(r);
+            r.assignRequestNo(java.time.LocalDateTime.now());
+        }
+        log.info("dev1의 샘플 구매요청서 {}건을 넣었습니다.", titles.length);
     }
 
     private void insertPagingSampleMembers() {

@@ -4,6 +4,9 @@ spring:
   profiles:
     default: local          # 프로필을 안 정하면 local(MySQL)로 뜬다
   jpa:
+    # OSIV(Open Session In View) 끔: DB 커넥션을 화면을 다 그릴 때까지 붙잡지 않는다.
+    # 대신 화면에 필요한 데이터는 서비스(트랜잭션) 안에서 다 읽어 와야 한다 (docs/troubleshooting/03)
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
@@ -19,8 +22,15 @@ spring:
         one-indexed-parameters: true   # 주소의 ?page=1 이 첫 페이지 (화면에 보이는 번호와 같게)
         default-page-size: 10
         max-page-size: 100
+  servlet:
+    multipart:
+      max-file-size: 10MB       # 첨부 한 개 (REQ-03)
+      max-request-size: 50MB    # 한 번에 올리는 전체 (5개 × 10MB)
   thymeleaf:
     cache: false            # 화면 수정 후 새로고침만 하면 바로 반영
+
+app:
+  upload-dir: ${UPLOAD_DIR:./uploads}   # 첨부파일 저장 위치
 
 server:
   port: 8080

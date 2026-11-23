@@ -31,7 +31,21 @@ public enum ErrorCode {
     CODE_GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "D001", "코드 그룹을 찾을 수 없습니다."),
     DUPLICATE_CODE_GROUP(HttpStatus.CONFLICT, "D002", "이미 있는 그룹 코드입니다."),
     CODE_NOT_FOUND(HttpStatus.NOT_FOUND, "D011", "코드를 찾을 수 없습니다."),
-    DUPLICATE_CODE(HttpStatus.CONFLICT, "D012", "이 그룹에 이미 있는 코드입니다.");
+    DUPLICATE_CODE(HttpStatus.CONFLICT, "D012", "이 그룹에 이미 있는 코드입니다."),
+
+    ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "I001", "품목을 찾을 수 없습니다."),
+    DUPLICATE_ITEM_CODE(HttpStatus.CONFLICT, "I002", "이미 있는 품목 코드입니다."),
+    VENDOR_NOT_FOUND(HttpStatus.NOT_FOUND, "V001", "거래처를 찾을 수 없습니다."),
+    DUPLICATE_BIZ_NO(HttpStatus.CONFLICT, "V002", "이미 등록된 사업자등록번호입니다."),
+    VENDOR_NOT_SELECTABLE(HttpStatus.BAD_REQUEST, "V003", "휴업·폐업했거나 사용 중지된 거래처는 고를 수 없습니다."),
+
+    REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "구매요청서를 찾을 수 없습니다."),
+    REQUEST_NOT_EDITABLE(HttpStatus.CONFLICT, "R002", "임시저장 상태인 요청서만 고치거나 지울 수 있습니다."),
+    REQUEST_ACCESS_DENIED(HttpStatus.FORBIDDEN, "R003", "이 구매요청서를 볼 권한이 없습니다."),
+    TOO_MANY_ATTACHMENTS(HttpStatus.BAD_REQUEST, "R004", "첨부파일은 5개까지 올릴 수 있습니다."),
+    ATTACHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "R005", "첨부파일을 찾을 수 없습니다."),
+    FILE_TOO_LARGE(HttpStatus.BAD_REQUEST, "R006", "파일은 한 개에 10MB, 한 번에 50MB까지 올릴 수 있습니다."),
+    FILE_STORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "R007", "파일을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
 
     private final HttpStatus status;
     private final String code;

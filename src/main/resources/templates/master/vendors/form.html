@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>거래처 등록·수정</title></head>
+<body>
+<main layout:fragment="content">
+    <h1 th:text="${id == null} ? '거래처 등록' : '거래처 수정'">거래처 등록</h1>
+    <form class="card form" th:object="${form}" method="post"
+          th:action="${id == null} ? @{/master/vendors} : @{/master/vendors/{id}(id=${id})}">
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}" th:errors="*{global}">오류</div>
+        <label>사업자등록번호
+            <input type="text" th:field="*{bizNo}" th:readonly="${id != null}" placeholder="123-45-67890">
+            <span class="field-error" th:errors="*{bizNo}"></span>
+        </label>
+        <div class="row">
+            <label>상호 <input type="text" th:field="*{name}"><span class="field-error" th:errors="*{name}"></span></label>
+            <label>대표자 <input type="text" th:field="*{ceoName}"><span class="field-error" th:errors="*{ceoName}"></span></label>
+        </div>
+        <label>사업자 상태 (지금은 직접 선택, 8단계부터 국세청 API로 자동 확인)
+            <select th:field="*{status}">
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}">정상</option>
+            </select>
+        </label>
+        <label class="check"><input type="checkbox" th:field="*{used}"> 사용</label>
+        <div class="actions">
+            <a class="btn secondary" th:href="@{/master/vendors}">목록</a>
+            <button type="submit" class="btn">저장</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>
