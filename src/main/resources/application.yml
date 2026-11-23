@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: purchase-approval
+  profiles:
+    default: local          # 프로필을 안 정하면 local(MySQL)로 뜬다
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+  thymeleaf:
+    cache: false            # 화면 수정 후 새로고침만 하면 바로 반영
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+logging:
+  level:
+    org.hibernate.SQL: debug   # 실행되는 SQL을 로그로 본다 (N+1 확인용)
+
+---
+# 로컬 개발: docker compose로 띄운 MySQL
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:mysql://localhost:3306/${DB_NAME:purchase}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME:purchase}
+    password: ${DB_PASSWORD:purchase}
+  jpa:
+    hibernate:
+      # update: 엔티티에 맞춰 테이블을 만들고 컬럼을 추가한다. 데이터는 지우지 않는다.
+      # create로 두면 재시작할 때마다 테이블을 지우고 새로 만들어 데이터가 사라진다 (docs/troubleshooting 참고)
+      ddl-auto: update
