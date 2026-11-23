@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>직급 등록·수정</title></head>
+<body>
+<main layout:fragment="content">
+    <h1 th:text="${id == null} ? '직급 등록' : '직급 수정'">직급 등록</h1>
+    <form class="card form" th:object="${form}" method="post"
+          th:action="${id == null} ? @{/admin/positions} : @{/admin/positions/{id}(id=${id})}">
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}" th:errors="*{global}">오류</div>
+        <label>직급 이름 <input type="text" th:field="*{name}"><span class="field-error" th:errors="*{name}"></span></label>
+        <label>서열 (클수록 높음) <input type="number" th:field="*{rankOrder}"><span class="field-error" th:errors="*{rankOrder}"></span></label>
+        <div class="actions">
+            <a class="btn secondary" th:href="@{/admin/positions}">목록</a>
+            <button type="submit" class="btn">저장</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

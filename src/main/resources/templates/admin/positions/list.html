@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>직급 관리</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1>직급 관리</h1>
+        <a class="btn" th:href="@{/admin/positions/new}">직급 등록</a>
+    </div>
+    <section class="card">
+        <table class="table">
+            <thead><tr><th>서열</th><th>직급</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="p : ${positions}">
+                <td th:text="${p.rankOrder}">1</td>
+                <td th:text="${p.name}">사원</td>
+                <td><a th:href="@{/admin/positions/{id}/edit(id=${p.id})}">수정</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

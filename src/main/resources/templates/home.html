@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/default}">
 <head>
@@ -8,10 +9,11 @@
 <body>
 <main layout:fragment="content">
     <h1>대시보드</h1>
-    <p class="muted">프로젝트 뼈대 확인용 화면입니다. DB에서 읽은 조직도를 보여 줍니다.</p>
+    <p class="muted"><span sec:authentication="principal.name">홍길동</span>님, 반갑습니다.
+        결재 대기 건수와 구매 통계는 9단계에서 이 화면에 들어옵니다.</p>
 
     <section class="card">
-        <h2>부서 <span class="badge" th:text="${departments.size()}">0</span></h2>
+        <h2>조직도 <span class="badge" th:text="${departments.size()}">0</span></h2>
         <table class="table">
             <thead>
             <tr><th>코드</th><th>부서명</th><th>상위 부서</th></tr>
@@ -22,18 +24,13 @@
                 <td th:text="${d.name}">경영지원본부</td>
                 <td th:text="${d.parent != null ? d.parent.name : '-'}">-</td>
             </tr>
-            <tr th:if="${departments.isEmpty()}">
-                <td colspan="3" class="muted">부서가 없습니다.</td>
-            </tr>
             </tbody>
         </table>
     </section>
 
     <section class="card">
         <h2>직급</h2>
-        <p>
-            <span class="chip" th:each="p : ${positions}" th:text="${p.name}">사원</span>
-        </p>
+        <p><span class="chip" th:each="p : ${positions}" th:text="${p.name}">사원</span></p>
     </section>
 </main>
 </body>

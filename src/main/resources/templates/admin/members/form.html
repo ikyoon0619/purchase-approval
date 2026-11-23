@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>사용자 등록·수정</title></head>
+<body>
+<main layout:fragment="content">
+    <h1 th:text="${id == null} ? '사용자 등록' : '사용자 수정'">사용자 등록</h1>
+
+    <form class="card form" th:object="${form}" method="post"
+          th:action="${id == null} ? @{/admin/members} : @{/admin/members/{id}(id=${id})}">
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}" th:errors="*{global}">오류</div>
+
+        <label>아이디
+            <input type="text" th:field="*{loginId}" th:readonly="${id != null}">
+            <span class="field-error" th:errors="*{loginId}"></span>
+        </label>
+        <label><span th:text="${id == null} ? '비밀번호' : '새 비밀번호 (바꿀 때만 입력)'">비밀번호</span>
+            <input type="password" th:field="*{password}" autocomplete="new-password">
+            <span class="field-error" th:errors="*{password}"></span>
+        </label>
+
+        <label>이름 <input type="text" th:field="*{name}"><span class="field-error" th:errors="*{name}"></span></label>
+        <label>이메일 <input type="email" th:field="*{email}"><span class="field-error" th:errors="*{email}"></span></label>
+
+        <div class="row">
+            <label>부서
+                <select th:field="*{departmentId}">
+                    <option value="">선택</option>
+                    <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}">개발팀</option>
+                </select>
+                <span class="field-error" th:errors="*{departmentId}"></span>
+            </label>
+            <label>직급
+                <select th:field="*{positionId}">
+                    <option value="">선택</option>
+                    <option th:each="p : ${positions}" th:value="${p.id}" th:text="${p.name}">사원</option>
+                </select>
+                <span class="field-error" th:errors="*{positionId}"></span>
+            </label>
+            <label>역할
+                <select th:field="*{role}">
+                    <option th:each="r : ${roles}" th:value="${r}" th:text="${r.label}">직원</option>
+                </select>
+            </label>
+        </div>
+        <label class="check"><input type="checkbox" th:field="*{enabled}"> 사용 (끄면 로그인할 수 없습니다)</label>
+
+        <div class="actions">
+            <a class="btn secondary" th:href="@{/admin/members}">목록</a>
+            <button type="submit" class="btn">저장</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

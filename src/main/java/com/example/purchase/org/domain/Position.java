@@ -26,4 +26,9 @@ public class Position extends BaseEntity {
         this.name = name;
         this.rankOrder = rankOrder;
     }
+
+    public void update(String name, int rankOrder) {
+        this.name = name;
+        this.rankOrder = rankOrder;
+    }
 }

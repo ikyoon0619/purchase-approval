@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>로그인 · 구매결재</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="login-page">
+<main class="login-box">
+    <h1 class="brand">구매요청·전자결재</h1>
+    <p class="muted">사내 계정으로 로그인하세요.</p>
+
+    <div class="alert error" th:if="${param.error}">아이디 또는 비밀번호가 맞지 않거나 사용이 중지된 계정입니다.</div>
+    <div class="alert" th:if="${param.logout}">로그아웃했습니다.</div>
+
+    <form th:action="@{/login}" method="post" class="form">
+        <label>아이디 <input type="text" name="loginId" autofocus required autocomplete="username"></label>
+        <label>비밀번호 <input type="password" name="password" required autocomplete="current-password"></label>
+        <button type="submit" class="btn full">로그인</button>
+    </form>
+
+    <details class="sample">
+        <summary>샘플 계정 (로컬 실행 전용)</summary>
+        <p class="muted">비밀번호는 모두 <code>pass1234</code></p>
+        <ul>
+            <li><code>admin</code> 관리자</li>
+            <li><code>dev1</code> 직원 (개발팀) · <code>devlead</code> 개발팀장</li>
+            <li><code>bizhead</code> 사업본부장 · <code>buylead</code> 구매팀장</li>
+        </ul>
+    </details>
+</main>
+</body>
+</html>

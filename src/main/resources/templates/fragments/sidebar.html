@@ -1,9 +1,5 @@
 <nav th:fragment="sidebar" class="sidebar" xmlns:th="http://www.thymeleaf.org">
-    <!-- 3단계에서 역할별 메뉴(menu_role)로 바뀐다 -->
-    <a th:href="@{/}" class="active">대시보드</a>
-    <a class="disabled">구매요청</a>
-    <a class="disabled">결재함</a>
-    <a class="disabled">발주·재고</a>
-    <a class="disabled">기준정보</a>
-    <a class="disabled">관리자</a>
+    <!-- 메뉴 목록은 LayoutModelAdvice가 로그인 사용자의 역할에 맞춰 넣어 준다 -->
+    <a th:each="m : ${menus}" th:href="@{${m.url()}}" th:text="${m.name()}"
+       th:classappend="${currentPath != null and (m.url() == '/' ? currentPath == '/' : #strings.startsWith(currentPath, m.url()))} ? 'active'">메뉴</a>
 </nav>

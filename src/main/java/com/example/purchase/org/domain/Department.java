@@ -52,4 +52,14 @@ public class Department extends BaseEntity {
     public boolean isDivision() {
         return parent == null;
     }
+
+    /** 관리자 화면에서 수정. 코드는 다른 데이터가 참조하는 키라서 바꾸지 않는다 */
+    public void update(String name, Department parent, boolean used) {
+        if (parent != null && (parent == this || !parent.isDivision())) {
+            throw new IllegalArgumentException("상위 부서는 본부만 지정할 수 있습니다.");
+        }
+        this.name = name;
+        this.parent = parent;
+        this.used = used;
+    }
 }
