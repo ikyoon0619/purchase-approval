@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>품목 등록·수정</title></head>
+<body>
+<main layout:fragment="content">
+    <h1 th:text="${id == null} ? '품목 등록' : '품목 수정'">품목 등록</h1>
+    <form class="card form" th:object="${form}" method="post"
+          th:action="${id == null} ? @{/master/items} : @{/master/items/{id}(id=${id})}">
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}" th:errors="*{global}">오류</div>
+        <label>품목 코드
+            <input type="text" th:field="*{code}" th:readonly="${id != null}" placeholder="IT-0001">
+            <span class="field-error" th:errors="*{code}"></span>
+        </label>
+        <label>품목명 <input type="text" th:field="*{name}"><span class="field-error" th:errors="*{name}"></span></label>
+        <div class="row">
+            <label>분류
+                <select th:field="*{categoryCode}">
+                    <option value="">선택</option>
+                    <option th:each="c : ${categories}" th:value="${c.key}" th:text="${c.value}">IT기기</option>
+                </select>
+                <span class="field-error" th:errors="*{categoryCode}"></span>
+            </label>
+            <label>단위
+                <select th:field="*{unitCode}">
+                    <option value="">선택</option>
+                    <option th:each="u : ${units}" th:value="${u.key}" th:text="${u.value}">개</option>
+                </select>
+                <span class="field-error" th:errors="*{unitCode}"></span>
+            </label>
+            <label>기준 단가 (원)
+                <input type="number" th:field="*{standardPrice}" min="0" step="1">
+                <span class="field-error" th:errors="*{standardPrice}"></span>
+            </label>
+        </div>
+        <label class="check"><input type="checkbox" th:field="*{used}"> 사용 (끄면 새 요청서에서 고를 수 없습니다)</label>
+        <div class="actions">
+            <a class="btn secondary" th:href="@{/master/items}">목록</a>
+            <button type="submit" class="btn">저장</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

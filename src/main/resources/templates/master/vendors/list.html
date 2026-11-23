@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>거래처 관리</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1>거래처 관리</h1>
+        <a class="btn" th:href="@{/master/vendors/new}">거래처 등록</a>
+    </div>
+    <p class="muted">휴업·폐업 거래처는 새 구매요청서에서 고를 수 없습니다. (사업자 상태 자동 확인은 8단계)</p>
+    <form class="card search" th:action="@{/master/vendors}" method="get">
+        <input type="text" name="keyword" placeholder="상호 또는 사업자번호" th:value="${keyword}">
+        <select name="status">
+            <option value="">전체 상태</option>
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${s == status}">정상</option>
+        </select>
+        <button type="submit" class="btn secondary">검색</button>
+    </form>
+    <section class="card">
+        <p class="muted">총 <strong th:text="${page.totalElements}">0</strong>곳</p>
+        <table class="table">
+            <thead><tr><th>사업자등록번호</th><th>상호</th><th>대표자</th><th>사업자 상태</th><th>확인 시각</th><th>사용</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="v : ${page.content}">
+                <td th:text="${v.bizNoFormatted}">123-45-67890</td>
+                <td th:text="${v.name}">(주)오피스몰</td>
+                <td th:text="${v.ceoName}">홍길동</td>
+                <td><span th:class="'status ' + ${v.status.css}" th:text="${v.status.label}">정상</span></td>
+                <td class="muted" th:text="${v.statusCheckedAt != null ? #temporals.format(v.statusCheckedAt, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
+                <td th:text="${v.used} ? '사용' : '중지'">사용</td>
+                <td><a th:href="@{/master/vendors/{id}/edit(id=${v.id})}">수정</a></td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="muted">조건에 맞는 거래처가 없습니다.</td></tr>
+            </tbody>
+        </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>
