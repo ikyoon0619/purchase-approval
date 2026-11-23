@@ -7,7 +7,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        default_batch_fetch_size: 100
   thymeleaf:
     cache: false            # 화면 수정 후 새로고침만 하면 바로 반영
 

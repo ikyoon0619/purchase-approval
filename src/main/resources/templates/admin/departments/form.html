@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>부서 등록·수정</title></head>
+<body>
+<main layout:fragment="content">
+    <h1 th:text="${id == null} ? '부서 등록' : '부서 수정'">부서 등록</h1>
+    <form class="card form" th:object="${form}" method="post"
+          th:action="${id == null} ? @{/admin/departments} : @{/admin/departments/{id}(id=${id})}">
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}" th:errors="*{global}">오류</div>
+        <label>부서 코드
+            <input type="text" th:field="*{code}" th:readonly="${id != null}" placeholder="D130">
+            <span class="field-error" th:errors="*{code}"></span>
+        </label>
+        <label>부서명 <input type="text" th:field="*{name}"><span class="field-error" th:errors="*{name}"></span></label>
+        <label>상위 부서
+            <select th:field="*{parentId}">
+                <option value="">없음 (본부)</option>
+                <option th:each="d : ${divisions}" th:value="${d.id}" th:text="${d.name}">경영지원본부</option>
+            </select>
+        </label>
+        <label class="check"><input type="checkbox" th:field="*{used}"> 사용</label>
+        <div class="actions">
+            <a class="btn secondary" th:href="@{/admin/departments}">목록</a>
+            <button type="submit" class="btn">저장</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

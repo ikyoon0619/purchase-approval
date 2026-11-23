@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>부서 관리</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1>부서 관리</h1>
+        <a class="btn" th:href="@{/admin/departments/new}">부서 등록</a>
+    </div>
+    <form class="card search" th:action="@{/admin/departments}" method="get">
+        <input type="text" name="keyword" placeholder="부서명" th:value="${keyword}">
+        <button type="submit" class="btn secondary">검색</button>
+    </form>
+    <section class="card">
+        <table class="table">
+            <thead><tr><th>코드</th><th>부서명</th><th>구분</th><th>상위 부서</th><th>상태</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="d : ${departments}">
+                <td th:text="${d.code}">D100</td>
+                <td th:text="${d.name}">경영지원본부</td>
+                <td th:text="${d.division} ? '본부' : '팀'">본부</td>
+                <td th:text="${d.parent != null ? d.parent.name : '-'}">-</td>
+                <td><span th:class="${d.used} ? 'status ok' : 'status off'" th:text="${d.used} ? '사용' : '미사용'">사용</span></td>
+                <td><a th:href="@{/admin/departments/{id}/edit(id=${d.id})}">수정</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

@@ -7,3 +7,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    properties:
+      hibernate:
+        generate_statistics: true   # 테스트에서 실행된 쿼리 수를 세기 위해 (N+1 확인)

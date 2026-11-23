@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>사용자 관리</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1>사용자 관리</h1>
+        <a class="btn" th:href="@{/admin/members/new}">사용자 등록</a>
+    </div>
+
+    <form class="card search" th:action="@{/admin/members}" method="get">
+        <input type="text" name="keyword" placeholder="이름 또는 아이디" th:value="${cond.keyword()}">
+        <select name="departmentId">
+            <option value="">전체 부서</option>
+            <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"
+                    th:selected="${d.id == cond.departmentId()}">개발팀</option>
+        </select>
+        <select name="role">
+            <option value="">전체 역할</option>
+            <option th:each="r : ${roles}" th:value="${r}" th:text="${r.label}"
+                    th:selected="${r == cond.role()}">직원</option>
+        </select>
+        <button type="submit" class="btn secondary">검색</button>
+    </form>
+
+    <section class="card">
+        <p class="muted">총 <strong th:text="${members.size()}">0</strong>명</p>
+        <table class="table">
+            <thead>
+            <tr><th>아이디</th><th>이름</th><th>부서</th><th>직급</th><th>역할</th><th>상태</th><th></th></tr>
+            </thead>
+            <tbody>
+            <!-- 부서·직급 이름을 쓰지만 추가 쿼리가 나가지 않는다: 목록 조회에서 fetch join으로 이미 읽어 왔기 때문 -->
+            <tr th:each="m : ${members}">
+                <td th:text="${m.loginId}">dev1</td>
+                <td th:text="${m.name}">김개발</td>
+                <td th:text="${m.department.name}">개발팀</td>
+                <td th:text="${m.position.name}">사원</td>
+                <td th:text="${m.role.label}">직원</td>
+                <td><span th:class="${m.enabled} ? 'status ok' : 'status off'"
+                          th:text="${m.enabled} ? '사용' : '중지'">사용</span></td>
+                <td><a th:href="@{/admin/members/{id}/edit(id=${m.id})}">수정</a></td>
+            </tr>
+            <tr th:if="${members.isEmpty()}"><td colspan="7" class="muted">조건에 맞는 사용자가 없습니다.</td></tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

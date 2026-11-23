@@ -3,6 +3,7 @@ package com.example.purchase.org.repository;
 import com.example.purchase.config.JpaConfig;
 import com.example.purchase.config.QuerydslConfig;
 import com.example.purchase.org.domain.Department;
+import com.example.purchase.security.SecurityAuditorAware;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({QuerydslConfig.class, JpaConfig.class})
+@Import({QuerydslConfig.class, JpaConfig.class, SecurityAuditorAware.class})
 class DepartmentRepositoryTest {
 
     @Autowired

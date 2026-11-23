@@ -11,9 +11,12 @@
 <header th:replace="~{fragments/header :: header}"></header>
 <div class="shell">
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
-    <main class="content" layout:fragment="content">
-        <!-- 각 화면의 내용이 여기에 들어간다 -->
-    </main>
+    <div class="content">
+        <div class="toast" th:if="${toast}" th:text="${toast}">저장했습니다.</div>
+        <main layout:fragment="content">
+            <!-- 각 화면의 내용이 여기에 들어간다 -->
+        </main>
+    </div>
 </div>
 </body>
 </html>

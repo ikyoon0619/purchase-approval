@@ -1,7 +1,15 @@
-<header th:fragment="header" class="topbar" xmlns:th="http://www.thymeleaf.org">
+<header th:fragment="header" class="topbar" xmlns:th="http://www.thymeleaf.org"
+        xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <a class="brand" th:href="@{/}">구매요청·전자결재</a>
-    <div class="topbar-right">
-        <!-- 3단계에서 로그인 사용자 이름과 로그아웃 버튼이 들어간다 -->
-        <span class="muted">로그인 전</span>
+    <div class="topbar-right" sec:authorize="isAuthenticated()">
+        <span>
+            <strong sec:authentication="principal.name">홍길동</strong>
+            <span class="muted">(<span sec:authentication="principal.departmentName">개발팀</span>
+                · <span sec:authentication="principal.role.label">직원</span>)</span>
+        </span>
+        <!-- 로그아웃은 POST + CSRF 토큰이어야 한다 (th:action이 토큰을 자동으로 넣음) -->
+        <form th:action="@{/logout}" method="post" class="inline">
+            <button type="submit" class="btn-link">로그아웃</button>
+        </form>
     </div>
 </header>
