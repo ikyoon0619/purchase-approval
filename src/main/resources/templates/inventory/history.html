@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>재고 이력</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1><span th:text="${stock.itemName}">노트북</span> <code th:text="${stock.itemCode}">IT-0001</code></h1>
+        <a class="btn secondary" th:href="@{/inventory}">재고 현황</a>
+    </div>
+
+    <section class="card">
+        <p>현재 재고 <strong class="total" th:text="${#numbers.formatInteger(stock.quantity, 1, 'COMMA')}">12</strong>
+            <span th:text="${units.getOrDefault(stock.unitCode, stock.unitCode)}">개</span></p>
+        <form class="form inline-form" th:action="@{/inventory/{id}/ship(id=${stock.itemId})}" method="post">
+            <label>출고 메모 <input type="text" name="memo" maxlength="200" placeholder="예) 개발팀 신규 입사자 지급"></label>
+            <label>수량 <input type="number" name="quantity" class="narrow" min="1" required></label>
+            <button type="submit" class="btn secondary">출고</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>이력</h2>
+        <table class="table">
+            <thead><tr><th>일시</th><th>구분</th><th class="num">증감</th><th class="num">처리 후</th><th>관련 발주</th><th>메모</th><th>처리자</th></tr></thead>
+            <tbody>
+            <tr th:each="h : ${page.content}">
+                <td class="muted nowrap" th:text="${#temporals.format(h.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-11-23</td>
+                <td><span th:class="'status ' + ${h.changeType.css}" th:text="${h.changeType.label}">입고</span></td>
+                <td class="num" th:text="${h.changeQty > 0 ? '+' + h.changeQty : h.changeQty}">+2</td>
+                <td class="num" th:text="${h.afterQty}">12</td>
+                <td><a class="link" th:if="${h.orderId}" th:href="@{/orders/{id}(id=${h.orderId})}" th:text="${h.orderNo}">PO-202611-0001</a></td>
+                <td th:text="${h.memo}">메모</td>
+                <td th:text="${h.createdBy}">buyer</td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="muted">아직 입고·출고 이력이 없습니다.</td></tr>
+            </tbody>
+        </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>

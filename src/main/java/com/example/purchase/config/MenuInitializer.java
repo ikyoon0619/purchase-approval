@@ -36,6 +36,8 @@ public class MenuInitializer implements ApplicationRunner {
                 new Menu("대시보드", "/", 10, ALL),
                 new Menu("구매요청", "/requests", 20, ALL),
                 new Menu("결재함", "/approvals", 30, EnumSet.of(Role.TEAM_LEADER, Role.DEPT_HEAD, Role.PURCHASING, Role.ADMIN)),
+                new Menu("발주 관리", "/orders", 40, EnumSet.of(Role.PURCHASING, Role.ADMIN)),
+                new Menu("재고 현황", "/inventory", 50, EnumSet.of(Role.PURCHASING, Role.ADMIN)),
                 new Menu("품목 관리", "/master/items", 500, EnumSet.of(Role.PURCHASING, Role.ADMIN)),
                 new Menu("거래처 관리", "/master/vendors", 510, EnumSet.of(Role.PURCHASING, Role.ADMIN)),
                 new Menu("사용자 관리", "/admin/members", 900, ADMIN),

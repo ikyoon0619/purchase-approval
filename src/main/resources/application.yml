@@ -50,7 +50,7 @@ spring:
     activate:
       on-profile: local
   datasource:
-    url: jdbc:mysql://localhost:3306/${DB_NAME:purchase}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/${DB_NAME:purchase}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&sessionVariables=innodb_lock_wait_timeout=5   # 재고 행 잠금을 5초까지만 기다림 (기본 50초)
     username: ${DB_USERNAME:purchase}
     password: ${DB_PASSWORD:purchase}
   jpa:

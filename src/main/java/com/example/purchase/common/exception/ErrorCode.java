@@ -51,7 +51,17 @@ public enum ErrorCode {
     NOT_YOUR_TURN(HttpStatus.FORBIDDEN, "A002", "지금 결재할 차례가 아닙니다."),
     ALREADY_PROCESSED(HttpStatus.CONFLICT, "A003", "다른 사용자가 먼저 처리했습니다. 화면을 새로 고쳐 확인해 주세요."),
     CANNOT_WITHDRAW(HttpStatus.CONFLICT, "A004", "첫 결재자가 처리하기 전에만 회수할 수 있습니다."),
-    REJECT_COMMENT_REQUIRED(HttpStatus.BAD_REQUEST, "A005", "반려할 때는 의견을 꼭 적어 주세요.");
+    REJECT_COMMENT_REQUIRED(HttpStatus.BAD_REQUEST, "A005", "반려할 때는 의견을 꼭 적어 주세요."),
+
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "발주서를 찾을 수 없습니다."),
+    ORDER_NOT_ALLOWED(HttpStatus.CONFLICT, "P002", "최종 승인된 요청서만 발주할 수 있습니다."),
+    ALREADY_ORDERED(HttpStatus.CONFLICT, "P003", "이미 발주한 요청서입니다."),
+    ALREADY_RECEIVED(HttpStatus.CONFLICT, "P004", "이미 입고 처리한 발주서입니다."),
+    INVALID_RECEIVE_QUANTITY(HttpStatus.BAD_REQUEST, "P005", "입고 수량은 0 이상 발주 수량 이하로 입력해 주세요."),
+
+    INVENTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "S001", "재고 정보를 찾을 수 없습니다."),
+    INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "S002", "재고가 부족합니다."),
+    STOCK_BUSY(HttpStatus.CONFLICT, "S003", "다른 사람이 같은 품목 재고를 처리하고 있습니다. 잠시 후 다시 시도해 주세요.");
 
     private final HttpStatus status;
     private final String code;

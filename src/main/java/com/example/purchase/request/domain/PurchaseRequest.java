@@ -231,6 +231,27 @@ public class PurchaseRequest extends BaseEntity {
         completedAt = now;
     }
 
+    // ---------------- 발주·입고 (7단계) ----------------
+
+    /** 발주 등록: 최종 승인된 문서만 (APPROVED → ORDERED) */
+    public void markOrdered() {
+        if (status == RequestStatus.ORDERED || status == RequestStatus.RECEIVED) {
+            throw new BusinessException(ErrorCode.ALREADY_ORDERED);
+        }
+        if (status != RequestStatus.APPROVED) {
+            throw new BusinessException(ErrorCode.ORDER_NOT_ALLOWED);
+        }
+        status = RequestStatus.ORDERED;
+    }
+
+    /** 입고 완료 (ORDERED → RECEIVED) */
+    public void markReceived() {
+        if (status != RequestStatus.ORDERED) {
+            throw new BusinessException(ErrorCode.ALREADY_RECEIVED);
+        }
+        status = RequestStatus.RECEIVED;
+    }
+
     /** 이번 회차 결재선 (회수 전 회차는 이력으로만 남는다) */
     public List<ApprovalLine> currentLines() {
         return approvalLines.stream().filter(l -> l.getRound() == submitRound).toList();

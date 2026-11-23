@@ -125,3 +125,7 @@ h1 .status { font-size: 13px; vertical-align: middle; margin-left: 6px; }
 .tabs { display: flex; gap: 4px; margin-top: 12px; border-bottom: 1px solid var(--line); }
 .tabs a { padding: 9px 14px; border-bottom: 2px solid transparent; color: var(--muted); }
 .tabs a.active { border-color: var(--primary); color: var(--primary); font-weight: 600; }
+
+/* 7단계: 발주·재고 */
+.short { color: #b26a00; font-weight: 600; }
+label.check { display: inline-flex; align-items: center; gap: 6px; }

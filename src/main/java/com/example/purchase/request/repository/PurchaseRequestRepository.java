@@ -38,4 +38,14 @@ public interface PurchaseRequestRepository extends JpaRepository<PurchaseRequest
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     @Query("select r from PurchaseRequest r where r.id = :id")
     Optional<PurchaseRequest> findForApproval(@Param("id") Long id);
+
+    /** 발주 대기: 최종 승인됐지만 아직 발주 안 한 요청서 (구매팀 발주 화면) */
+    @Query(value = """
+            select r from PurchaseRequest r
+            join fetch r.requester join fetch r.department join fetch r.vendor
+            where r.status = com.example.purchase.request.domain.RequestStatus.APPROVED
+            order by r.completedAt asc
+            """,
+            countQuery = "select count(r) from PurchaseRequest r where r.status = com.example.purchase.request.domain.RequestStatus.APPROVED")
+    org.springframework.data.domain.Page<PurchaseRequest> findApprovedForOrder(org.springframework.data.domain.Pageable pageable);
 }

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>발주 관리</title></head>
+<body>
+<main layout:fragment="content">
+    <h1>발주 관리</h1>
+    <nav class="tabs">
+        <a th:href="@{/orders(tab='waiting')}" th:classappend="${tab == 'waiting'} ? 'active'">발주 대기 (최종 승인)</a>
+        <a th:href="@{/orders(tab='ordered')}" th:classappend="${tab == 'ordered'} ? 'active'">입고 대기</a>
+        <a th:href="@{/orders(tab='received')}" th:classappend="${tab == 'received'} ? 'active'">입고 완료</a>
+    </nav>
+
+    <section class="card">
+        <p class="muted">총 <strong th:text="${page.totalElements}">0</strong>건</p>
+
+        <!-- 발주 대기: 최종 승인된 요청서. 행마다 발주 버튼 -->
+        <table class="table" th:if="${tab == 'waiting'}">
+            <thead><tr><th>문서번호</th><th>제목</th><th>기안자</th><th>거래처</th><th class="num">합계</th><th>승인일</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${page.content}">
+                <td><code th:text="${r.requestNo}">PR-202611-0001</code></td>
+                <td><a class="link" th:href="@{/requests/{id}(id=${r.requestId})}" th:text="${r.title}">노트북 구매</a></td>
+                <td class="nowrap" th:text="${r.requesterName} + ' (' + ${r.departmentName} + ')'">김개발 (개발팀)</td>
+                <td th:text="${r.vendorName}">(주)오피스몰</td>
+                <td class="num" th:text="${#numbers.formatInteger(r.totalAmount, 1, 'COMMA')} + '원'">1,500,000원</td>
+                <td class="muted nowrap" th:text="${#temporals.format(r.approvedAt, 'yyyy-MM-dd HH:mm')}">2026-11-23</td>
+                <td>
+                    <form class="inline" th:action="@{/orders}" method="post"
+                          onsubmit="return confirm('이 요청서로 발주서를 만들까요?');">
+                        <input type="hidden" name="requestId" th:value="${r.requestId}">
+                        <button type="submit" class="btn small">발주</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="muted">발주할 요청서가 없습니다.</td></tr>
+            </tbody>
+        </table>
+
+        <table class="table" th:unless="${tab == 'waiting'}">
+            <thead><tr><th>발주번호</th><th>요청서</th><th>기안자</th><th>거래처</th><th class="num">금액</th><th>상태</th>
+                <th th:text="${tab == 'received'} ? '입고일' : '발주일'">발주일</th></tr></thead>
+            <tbody>
+            <tr th:each="o : ${page.content}">
+                <td><a class="link" th:href="@{/orders/{id}(id=${o.id})}"><code th:text="${o.orderNo}">PO-202611-0001</code></a></td>
+                <td><a class="link" th:href="@{/requests/{id}(id=${o.requestId})}" th:text="${o.title}">노트북 구매</a></td>
+                <td th:text="${o.requesterName}">김개발</td>
+                <td th:text="${o.vendorName}">(주)오피스몰</td>
+                <td class="num" th:text="${#numbers.formatInteger(o.totalAmount, 1, 'COMMA')} + '원'">1,500,000원</td>
+                <td><span th:class="'status ' + ${o.status.css}" th:text="${o.status.label}">발주</span></td>
+                <td class="muted nowrap" th:text="${#temporals.format(tab == 'received' ? o.receivedAt : o.orderedAt, 'yyyy-MM-dd HH:mm')}">2026-11-23</td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="muted">발주서가 없습니다.</td></tr>
+            </tbody>
+        </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>
