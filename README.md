@@ -45,6 +45,15 @@ docker compose up -d              # MySQL 실행
   관리자가 화면에서 체크만 바꾸면 메뉴 노출과 URL 접근이 함께 바뀝니다.
 - `/admin/**`는 메뉴 설정과 관계없이 관리자만 들어갈 수 있습니다.
 
+## 전자결재
+
+- 상신하면 결재선을 조직도에서 자동으로 만듭니다: 팀장 → 본부장 → (500만 원 이상) 구매팀장. 기안자 본인 단계는 건너뜁니다.
+- 상세 화면에서 상신 전에 결재선을 미리 보여 주고, 결재자를 못 찾으면 이유를 보여 줍니다.
+- 결재함: 결재 대기 / 내가 처리한 문서 / 진행 중 문서. 왼쪽 메뉴에 대기 건수가 붙습니다.
+- 회수는 첫 결재 전에만, 반려는 의견 필수, 반려된 문서는 "복사해서 다시 작성".
+- 같은 문서를 동시에 처리하면 한 건만 반영됩니다 (트러블슈팅 04).
+- 샘플: `dev1` 상신 → `devlead` 승인 → `bizhead` 승인. 660만 원 문서는 `buylead`까지. 반려 예시는 `sales1`.
+
 ## 트러블슈팅 (요약)
 
 | # | 문제 | 해결 | 결과 |
@@ -52,6 +61,7 @@ docker compose up -d              # MySQL 실행
 | 01 | [사용자 목록 N+1](docs/troubleshooting/01-사용자-목록-N+1.md) | QueryDSL fetch join | 쿼리 11번 → 1번 |
 | 02 | [컬렉션 fetch join + 페이징](docs/troubleshooting/02-공통코드-페이징-컬렉션-fetch-join.md) | batch fetch size + 오류로 막기 | 읽은 엔티티 180개 → 60개, 쿼리 12번 → 3번 |
 | 03 | [OSIV 끄고 LazyInitializationException](docs/troubleshooting/03-open-in-view-끄고-LazyInitializationException.md) | fetch join + 화면에는 DTO | 검색할 때만 나던 500 → 200 |
+| 04 | [중간 결재는 version이 안 올라가는 문제](docs/troubleshooting/04-중간-결재는-version이-안-올라가는-문제.md) | 루트에 `OPTIMISTIC_FORCE_INCREMENT` | 회수·승인 동시 처리: 둘 다 성공(깨진 상태) → 하나만 성공 |
 
 ## 프로젝트 구조
 
@@ -63,7 +73,8 @@ src/main/java/com/example/purchase
 ├── menu/        메뉴와 역할별 권한
 ├── org/         사용자·부서·직급 (조직도), 사용자 엑셀 다운로드
 ├── master/      품목, 거래처 (기준정보)
-├── request/     구매요청서 작성·임시저장·수정·삭제, 첨부파일, 내 요청 목록
+├── request/     구매요청서 작성·임시저장·수정·삭제, 첨부파일, 내 요청 목록, 결재선(ApprovalLine)
+├── approval/    결재선 자동 생성, 상신·회수·승인·반려, 결재함
 ├── code/        공통코드 그룹·코드 (품목 분류, 단위 등)
 └── home/        대시보드
 src/main/resources/templates

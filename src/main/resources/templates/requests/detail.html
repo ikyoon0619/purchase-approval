@@ -16,8 +16,19 @@
                       onsubmit="return confirm('임시저장한 요청서를 삭제할까요?');">
                     <button type="submit" class="btn secondary danger">삭제</button>
                 </form>
-                <a class="btn" th:href="@{/requests/{id}/edit(id=${r.id})}">수정</a>
+                <a class="btn secondary" th:href="@{/requests/{id}/edit(id=${r.id})}">수정</a>
             </th:block>
+            <form class="inline" th:if="${r.canSubmit and preview != null and preview.error == null}"
+                  th:action="@{/requests/{id}/submit(id=${r.id})}" method="post"
+                  onsubmit="return confirm('상신하면 결재가 끝날 때까지 고칠 수 없습니다. 상신할까요?');">
+                <button type="submit" class="btn">상신</button>
+            </form>
+            <form class="inline" th:if="${r.canWithdraw}" th:action="@{/requests/{id}/withdraw(id=${r.id})}" method="post"
+                  onsubmit="return confirm('회수하면 임시저장 상태로 돌아갑니다. 회수할까요?');">
+                <button type="submit" class="btn secondary">회수</button>
+            </form>
+            <a class="btn" th:if="${r.mine and r.status.name() == 'REJECTED'}"
+               th:href="@{/requests/new(copyFrom=${r.id})}">복사해서 다시 작성</a>
         </div>
     </div>
 
@@ -65,7 +76,56 @@
         <p class="muted" th:if="${r.attachments.isEmpty()}">첨부파일이 없습니다.</p>
     </section>
 
-    <section class="card muted">결재선과 상신은 6단계에서 붙습니다.</section>
+    <section class="card">
+        <h2>결재선</h2>
+        <!-- 임시저장: 상신하면 만들어질 결재선을 미리 보여 준다 -->
+        <th:block th:if="${r.steps.isEmpty()}">
+            <th:block th:if="${preview != null}">
+                <p class="alert error" th:if="${preview.error}" th:text="${preview.error}">결재자를 찾을 수 없습니다.</p>
+                <th:block th:unless="${preview.error}">
+                    <p class="muted">상신하면 아래 순서로 결재가 올라갑니다.</p>
+                    <ol class="approval-line">
+                        <li th:each="s, st : ${preview.steps}">
+                            <span class="step-no" th:text="${st.count}">1</span>
+                            <div><strong th:text="${s.stepName}">팀장</strong>
+                                <div th:text="${s.approverName} + ' ' + ${s.positionName}">이팀장 과장</div></div>
+                        </li>
+                    </ol>
+                </th:block>
+            </th:block>
+            <p class="muted" th:if="${preview == null}">아직 상신하지 않은 문서입니다.</p>
+        </th:block>
+
+        <ol class="approval-line" th:unless="${r.steps.isEmpty()}">
+            <li th:each="s : ${r.steps}" th:classappend="${s.status.name().toLowerCase()}">
+                <span class="step-no" th:text="${s.stepOrder}">1</span>
+                <div>
+                    <strong th:text="${s.stepName}">팀장</strong>
+                    <span th:class="'status ' + ${s.status.css}" th:text="${s.status.label}">결재 차례</span>
+                    <div th:text="${s.approverName} + ' ' + ${s.positionName}">이팀장 과장</div>
+                    <div class="muted small" th:if="${s.processedAt}" th:text="${#temporals.format(s.processedAt, 'yyyy-MM-dd HH:mm')}">2026-11-23 10:00</div>
+                    <div class="comment" th:if="${s.comment}" th:text="${s.comment}">확인했습니다.</div>
+                </div>
+            </li>
+        </ol>
+        <p class="muted small" th:if="${r.submittedAt}">
+            상신 <span th:text="${#temporals.format(r.submittedAt, 'yyyy-MM-dd HH:mm')}">2026-11-23 10:00</span>
+            <th:block th:if="${r.completedAt}"> · 결재 완료
+                <span th:text="${#temporals.format(r.completedAt, 'yyyy-MM-dd HH:mm')}">2026-11-23 11:00</span></th:block>
+        </p>
+
+        <!-- 지금 내 차례일 때만 보인다. 버튼 두 개가 같은 폼을 다른 주소(formaction)로 보낸다 -->
+        <form class="form approve-form" th:if="${r.canApprove}" th:action="@{/requests/{id}/approve(id=${r.id})}" method="post">
+            <label>결재 의견 <span class="muted">(반려할 때는 꼭 적어 주세요, 500자까지)</span>
+                <textarea name="comment" rows="3" maxlength="500" placeholder="예) 예산 범위 안이라 승인합니다."></textarea>
+            </label>
+            <div class="actions">
+                <button type="submit" class="btn secondary danger" th:formaction="@{/requests/{id}/reject(id=${r.id})}"
+                        onclick="return confirm('반려하면 문서가 끝나고 기안자가 다시 작성해야 합니다. 반려할까요?');">반려</button>
+                <button type="submit" class="btn">승인</button>
+            </div>
+        </form>
+    </section>
 </main>
 </body>
 </html>

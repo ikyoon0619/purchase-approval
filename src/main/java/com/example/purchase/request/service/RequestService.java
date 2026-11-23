@@ -151,12 +151,13 @@ public class RequestService {
     private RequestDetail toDetail(PurchaseRequest request, LoginUser user) {
         Map<String, String> purposes = codeService.codeNames("PURCHASE_PURPOSE");
         Map<String, String> units = codeService.codeNames("UNIT");
-        return RequestDetail.of(request, request.isRequestedBy(user.getId()), purposes, units);
+        return RequestDetail.of(request, user.getId(), purposes, units);
     }
 
-    /** 기안자, 구매팀, 관리자. (6단계에서 결재선에 있는 결재자도 추가) */
+    /** 기안자, 결재선에 들어 있는 결재자, 구매팀, 관리자 */
     private void checkCanView(PurchaseRequest request, LoginUser user) {
         boolean allowed = request.isRequestedBy(user.getId())
+                || request.hasApprover(user.getId())
                 || user.getRole() == Role.PURCHASING
                 || user.getRole() == Role.ADMIN;
         if (!allowed) {

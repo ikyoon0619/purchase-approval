@@ -53,4 +53,12 @@ public class RequestForm {
         d.items().forEach(l -> f.items.add(new RequestItemForm(l.itemId(), l.quantity(), l.unitPrice())));
         return f;
     }
+
+    /** 반려된 문서 복사. 제목 앞에 [재작성]을 붙인다 (200자 제한 안에서) */
+    public static RequestForm copyOf(RequestDetail d) {
+        RequestForm f = from(d);
+        String title = "[재작성] " + d.title();
+        f.title = title.length() > 200 ? title.substring(0, 200) : title;
+        return f;
+    }
 }

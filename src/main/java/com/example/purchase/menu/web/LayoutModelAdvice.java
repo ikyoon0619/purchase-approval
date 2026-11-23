@@ -1,5 +1,6 @@
 package com.example.purchase.menu.web;
 
+import com.example.purchase.approval.service.ApprovalService;
 import com.example.purchase.menu.service.MenuService;
 import com.example.purchase.menu.service.MenuService.MenuItem;
 import com.example.purchase.security.LoginUser;
@@ -11,12 +12,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.util.List;
 
-/** 모든 화면의 공통 레이아웃에 필요한 값(왼쪽 메뉴, 현재 주소)을 모델에 넣는다 */
+/** 모든 화면의 공통 레이아웃에 필요한 값(왼쪽 메뉴, 현재 주소, 결재 대기 건수)을 모델에 넣는다 */
 @ControllerAdvice
 @RequiredArgsConstructor
 public class LayoutModelAdvice {
 
     private final MenuService menuService;
+    private final ApprovalService approvalService;
 
     @ModelAttribute("menus")
     public List<MenuItem> menus(@AuthenticationPrincipal LoginUser user) {
@@ -26,5 +28,11 @@ public class LayoutModelAdvice {
     @ModelAttribute("currentPath")
     public String currentPath(HttpServletRequest request) {
         return request.getRequestURI();
+    }
+
+    /** 왼쪽 메뉴 "결재함 2". count 쿼리 1번 (approver_id, status 인덱스) */
+    @ModelAttribute("pendingApprovalCount")
+    public long pendingApprovalCount(@AuthenticationPrincipal LoginUser user) {
+        return user == null ? 0 : approvalService.pendingCount(user.getId());
     }
 }

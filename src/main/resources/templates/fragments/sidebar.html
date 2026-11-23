@@ -1,5 +1,6 @@
 <nav th:fragment="sidebar" class="sidebar" xmlns:th="http://www.thymeleaf.org">
     <!-- 메뉴 목록은 LayoutModelAdvice가 로그인 사용자의 역할에 맞춰 넣어 준다 -->
-    <a th:each="m : ${menus}" th:href="@{${m.url()}}" th:text="${m.name()}"
-       th:classappend="${currentPath != null and (m.url() == '/' ? currentPath == '/' : #strings.startsWith(currentPath, m.url()))} ? 'active'">메뉴</a>
+    <a th:each="m : ${menus}" th:href="@{${m.url()}}"
+       th:classappend="${currentPath != null and (m.url() == '/' ? currentPath == '/' : #strings.startsWith(currentPath, m.url()))} ? 'active'"><span th:text="${m.name()}">메뉴</span>
+        <span class="badge count" th:if="${m.url() == '/approvals' and pendingApprovalCount > 0}" th:text="${pendingApprovalCount}">2</span></a>
 </nav>

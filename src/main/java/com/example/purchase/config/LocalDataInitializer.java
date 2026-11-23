@@ -22,6 +22,8 @@ import com.example.purchase.master.domain.Vendor;
 import com.example.purchase.master.domain.VendorStatus;
 import com.example.purchase.master.repository.ItemRepository;
 import com.example.purchase.master.repository.VendorRepository;
+import com.example.purchase.approval.repository.ApprovalLineRepository;
+import com.example.purchase.approval.service.ApprovalLineResolver;
 import com.example.purchase.request.domain.PurchaseRequest;
 import com.example.purchase.request.repository.PurchaseRequestRepository;
 
@@ -49,6 +51,8 @@ public class LocalDataInitializer implements ApplicationRunner {
     private final ItemRepository itemRepository;
     private final VendorRepository vendorRepository;
     private final PurchaseRequestRepository requestRepository;
+    private final ApprovalLineRepository approvalLineRepository;
+    private final ApprovalLineResolver approvalLineResolver;
 
     @Override
     @Transactional
@@ -82,6 +86,48 @@ public class LocalDataInitializer implements ApplicationRunner {
         if (requestRepository.count() == 0) {
             insertSampleRequests();
         }
+        // 6단계: 결재함에 문서가 보이도록 상신·승인·반려된 샘플
+        if (approvalLineRepository.count() == 0) {
+            insertApprovalSamples();
+        }
+    }
+
+    /**
+     * dev2: 결재 대기(이팀장 차례), 660만 원짜리(구매팀장 강구매 차례)
+     * sales1: 본부장 박본부 차례, 윤팀장이 반려한 문서
+     */
+    private void insertApprovalSamples() {
+        Member dev2 = memberRepository.findByLoginIdWithDepartment("dev2").orElse(null);
+        Member sales1 = memberRepository.findByLoginIdWithDepartment("sales1").orElse(null);
+        Member devlead = memberRepository.findByLoginIdWithDepartment("devlead").orElse(null);
+        Member saleslead = memberRepository.findByLoginIdWithDepartment("saleslead").orElse(null);
+        Member bizhead = memberRepository.findByLoginIdWithDepartment("bizhead").orElse(null);
+        if (dev2 == null || sales1 == null || devlead == null || saleslead == null || bizhead == null) {
+            return;
+        }
+        Map<String, Item> items = new java.util.HashMap<>();
+        itemRepository.findAll().forEach(i -> items.put(i.getCode(), i));
+        Vendor vendor = vendorRepository.findAll().stream().filter(Vendor::isSelectable).findFirst().orElseThrow();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        PurchaseRequest a = sample(dev2, "회의실 모니터 교체", vendor, items.get("IT-0002"), 2, now.minusDays(1));
+        PurchaseRequest b = sample(dev2, "개발 서버 점검용 노트북 4대", vendor, items.get("IT-0001"), 4, now.minusDays(2));
+        b.approve(devlead.getId(), "필요성 확인했습니다.", now.minusDays(2).plusHours(3));
+        b.approve(bizhead.getId(), null, now.minusDays(1));
+        PurchaseRequest c = sample(sales1, "영업팀 복사용지와 토너", vendor, items.get("CS-0001"), 3, now.minusHours(5));
+        c.approve(saleslead.getId(), "승인합니다.", now.minusHours(4));
+        PurchaseRequest d = sample(sales1, "영업팀 의자 교체 10개", vendor, items.get("FN-0001"), 10, now.minusDays(3));
+        d.reject(saleslead.getId(), "이번 분기 예산을 넘습니다. 5개로 줄여 다시 올려 주세요.", now.minusDays(2));
+        log.info("결재 샘플 문서 4건을 넣었습니다.");
+    }
+
+    private PurchaseRequest sample(Member requester, String title, Vendor vendor, Item item, int qty, java.time.LocalDateTime submittedAt) {
+        PurchaseRequest r = PurchaseRequest.draft(requester, title, "WORK", "샘플 요청서입니다.", vendor);
+        r.replaceItems(List.of(new PurchaseRequest.Line(item, qty, item.getStandardPrice())));
+        requestRepository.save(r);
+        r.assignRequestNo(submittedAt);
+        r.submit(approvalLineResolver.resolve(r), submittedAt);
+        return r;
     }
 
     private void insertMasterData() {

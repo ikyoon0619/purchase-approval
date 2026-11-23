@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>결재함</title></head>
+<body>
+<main layout:fragment="content">
+    <h1>결재함</h1>
+    <nav class="tabs">
+        <a th:each="t : ${tabs}" th:href="@{/approvals(tab=${t.name().toLowerCase()})}"
+           th:classappend="${t == tab} ? 'active'">
+            <span th:text="${t.label}">결재 대기</span>
+            <span class="badge" th:if="${t.name() == 'PENDING' and pendingApprovalCount > 0}" th:text="${pendingApprovalCount}">2</span>
+        </a>
+    </nav>
+
+    <section class="card">
+        <p class="muted">총 <strong th:text="${page.totalElements}">0</strong>건</p>
+        <table class="table">
+            <thead><tr>
+                <th>문서번호</th><th>제목</th><th>기안자</th><th class="num">합계</th><th>내 단계</th><th>문서 상태</th>
+                <th th:text="${tab.name() == 'DONE'} ? '처리일' : '상신일'">상신일</th>
+            </tr></thead>
+            <tbody>
+            <tr th:each="r : ${page.content}">
+                <td><code th:text="${r.requestNo}">PR-202611-0001</code></td>
+                <td><a class="link" th:href="@{/requests/{id}(id=${r.requestId})}" th:text="${r.title}">노트북 구매</a></td>
+                <td class="nowrap" th:text="${r.requesterName} + ' (' + ${r.departmentName} + ')'">김개발 (개발팀)</td>
+                <td class="num" th:text="${#numbers.formatInteger(r.totalAmount, 1, 'COMMA')} + '원'">1,500,000원</td>
+                <td class="nowrap"><span th:text="${r.stepName}">팀장</span>
+                    <span th:class="'status ' + ${r.lineStatus.css}" th:text="${r.lineStatus.label}">결재 차례</span></td>
+                <td><span th:class="'status ' + ${r.requestStatus.css}" th:text="${r.requestStatus.label}">결재중</span></td>
+                <td class="muted nowrap"
+                    th:text="${#temporals.format(tab.name() == 'DONE' ? r.processedAt : r.submittedAt, 'yyyy-MM-dd HH:mm')}">2026-11-23 10:00</td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}">
+                <td colspan="7" class="muted" th:text="${tab.name() == 'PENDING'} ? '결재할 문서가 없습니다.' : '문서가 없습니다.'">결재할 문서가 없습니다.</td>
+            </tr>
+            </tbody>
+        </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>
