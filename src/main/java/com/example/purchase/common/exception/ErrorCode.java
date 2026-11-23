@@ -26,7 +26,12 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "O021", "사용자를 찾을 수 없습니다."),
     DUPLICATE_LOGIN_ID(HttpStatus.CONFLICT, "O022", "이미 쓰고 있는 아이디입니다."),
 
-    MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "메뉴를 찾을 수 없습니다.");
+    MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "메뉴를 찾을 수 없습니다."),
+
+    CODE_GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "D001", "코드 그룹을 찾을 수 없습니다."),
+    DUPLICATE_CODE_GROUP(HttpStatus.CONFLICT, "D002", "이미 있는 그룹 코드입니다."),
+    CODE_NOT_FOUND(HttpStatus.NOT_FOUND, "D011", "코드를 찾을 수 없습니다."),
+    DUPLICATE_CODE(HttpStatus.CONFLICT, "D012", "이 그룹에 이미 있는 코드입니다.");
 
     private final HttpStatus status;
     private final String code;

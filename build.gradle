@@ -37,6 +37,9 @@ dependencies {
     annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
+    // 엑셀 다운로드 (SXSSF: 행을 디스크로 흘려 써서 행이 많아도 메모리를 적게 쓴다)
+    implementation 'org.apache.poi:poi-ooxml:5.3.0'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 

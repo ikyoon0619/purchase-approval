@@ -7,6 +7,8 @@ import com.example.purchase.org.repository.MemberRepository;
 import com.example.purchase.org.repository.MemberSearchCond;
 import com.example.purchase.org.web.MemberForm;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,8 +26,12 @@ public class MemberService {
     private final PositionService positionService;
     private final PasswordEncoder passwordEncoder;
 
-    public List<Member> search(MemberSearchCond cond) {
-        return memberRepository.search(cond);
+    public Page<Member> search(MemberSearchCond cond, Pageable pageable) {
+        return memberRepository.search(cond, pageable);
+    }
+
+    public List<Member> searchAll(MemberSearchCond cond) {
+        return memberRepository.searchAll(cond);
     }
 
     public Member get(Long id) {

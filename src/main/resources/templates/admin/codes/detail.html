@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>코드 그룹</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1><span th:text="${group.name}">단위</span> <code class="muted" th:text="${group.groupCode}">UNIT</code></h1>
+        <a class="btn secondary" th:href="@{/admin/codes}">목록</a>
+    </div>
+    <div class="alert error" th:if="${error}" th:text="${error}">오류</div>
+
+    <!-- 그룹 정보 -->
+    <form class="card form inline-form" th:object="${form}" method="post"
+          th:action="@{/admin/codes/{gc}(gc=${group.groupCode})}">
+        <label>그룹 이름 <input type="text" th:field="*{name}"><span class="field-error" th:errors="*{name}"></span></label>
+        <label class="check"><input type="checkbox" th:field="*{used}"> 사용</label>
+        <button type="submit" class="btn secondary">그룹 저장</button>
+    </form>
+
+    <!-- 코드 목록: 한 줄이 한 폼 -->
+    <section class="card">
+        <h2>코드 <span class="badge" th:text="${group.codes.size()}">0</span></h2>
+        <table class="table">
+            <thead><tr><th>코드</th><th>이름</th><th>정렬</th><th>사용</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="c : ${group.codes}">
+                <!-- form 속성으로 표의 칸을 아래 폼에 묶는다 (tr 안에 form을 바로 넣을 수 없어서) -->
+                <td><code th:text="${c.code}">EA</code></td>
+                <td><input type="text" name="name" th:value="${c.name}" th:attr="form='code-' + ${c.id}"></td>
+                <td><input type="number" name="sortOrder" class="narrow" th:value="${c.sortOrder}" th:attr="form='code-' + ${c.id}"></td>
+                <td>
+                    <input type="checkbox" name="used" value="true" th:checked="${c.used}" th:attr="form='code-' + ${c.id}">
+                    <!-- 체크를 풀면 브라우저는 used를 아예 안 보낸다. _used가 오면 Spring이 false로 채운다 -->
+                    <input type="hidden" name="_used" value="on" th:attr="form='code-' + ${c.id}">
+                </td>
+                <td>
+                    <form th:id="'code-' + ${c.id}" class="inline" method="post"
+                          th:action="@{/admin/codes/{gc}/codes/{id}(gc=${group.groupCode}, id=${c.id})}">
+                        <button type="submit" class="btn secondary small">저장</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${group.codes.isEmpty()}"><td colspan="5" class="muted">아직 코드가 없습니다. 아래에서 추가하세요.</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- 코드 추가 -->
+    <form class="card search" th:object="${newCode}" method="post"
+          th:action="@{/admin/codes/{gc}/codes(gc=${group.groupCode})}">
+        <strong>코드 추가</strong>
+        <input type="text" th:field="*{code}" placeholder="코드 (예: EA)">
+        <input type="text" th:field="*{name}" placeholder="이름 (예: 개)">
+        <input type="number" th:field="*{sortOrder}" class="narrow" placeholder="정렬">
+        <input type="hidden" name="used" value="true">
+        <button type="submit" class="btn">추가</button>
+    </form>
+</main>
+</body>
+</html>

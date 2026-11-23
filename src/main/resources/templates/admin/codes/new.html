@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>코드 그룹 추가</title></head>
+<body>
+<main layout:fragment="content">
+    <h1>코드 그룹 추가</h1>
+    <form class="card form" th:object="${form}" th:action="@{/admin/codes}" method="post">
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}" th:errors="*{global}">오류</div>
+        <label>그룹 코드
+            <input type="text" th:field="*{groupCode}" placeholder="ITEM_CATEGORY">
+            <span class="field-error" th:errors="*{groupCode}"></span>
+        </label>
+        <label>그룹 이름
+            <input type="text" th:field="*{name}" placeholder="품목 분류">
+            <span class="field-error" th:errors="*{name}"></span>
+        </label>
+        <label class="check"><input type="checkbox" th:field="*{used}"> 사용</label>
+        <div class="actions">
+            <a class="btn secondary" th:href="@{/admin/codes}">목록</a>
+            <button type="submit" class="btn">만들기</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>
