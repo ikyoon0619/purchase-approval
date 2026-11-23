@@ -31,6 +31,8 @@ spring:
       max-request-size: 50MB    # 한 번에 올리는 전체 (5개 × 10MB)
   thymeleaf:
     cache: false            # 화면 수정 후 새로고침만 하면 바로 반영
+  flyway:
+    enabled: false          # local·test는 JPA가 테이블을 만든다(ddl-auto). prod만 Flyway로
   batch:
     job:
       enabled: false        # 앱이 뜰 때 job을 자동으로 돌리지 않는다. 스케줄러(매일 02:00)와 통계 화면 버튼으로만 실행
@@ -41,6 +43,7 @@ spring:
       initialize-schema: always
 
 app:
+  sample-data: false                    # 샘플 조직도·계정·문서 넣기 (local은 true)
   upload-dir: ${UPLOAD_DIR:./uploads}   # 첨부파일 저장 위치
   nts:                                  # 국세청 사업자등록 상태조회 (공공데이터포털)
     base-url: https://api.odcloud.kr/api/nts-businessman/v1
@@ -78,3 +81,35 @@ spring:
       # update: 엔티티에 맞춰 테이블을 만들고 컬럼을 추가한다. 데이터는 지우지 않는다.
       # create로 두면 재시작할 때마다 테이블을 지우고 새로 만들어 데이터가 사라진다 (docs/troubleshooting 참고)
       ddl-auto: update
+app:
+  sample-data: true
+
+---
+# 운영(EC2 + Docker). 값은 모두 환경변수(.env)에서 받는다. docker-compose.prod.yml 참고
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    # 컨테이너 안에서 localhost는 "앱 컨테이너 자신"이다. MySQL은 compose 서비스 이름(mysql)으로 찾는다
+    url: jdbc:mysql://${DB_HOST:mysql}:3306/${DB_NAME:purchase}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&sessionVariables=innodb_lock_wait_timeout=5
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      # 운영에서는 JPA가 테이블을 바꾸지 않는다. 테이블은 Flyway가 만들고, JPA는 엔티티와 맞는지 검사만 (다르면 앱이 안 뜬다)
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  thymeleaf:
+    cache: true
+app:
+  sample-data: ${SAMPLE_DATA:false}     # 공개 데모 서버면 true (샘플 계정으로 둘러볼 수 있게)
+  upload-dir: ${UPLOAD_DIR:/app/uploads}
+  initial-admin-password: ${ADMIN_INITIAL_PASSWORD:}   # 사용자가 0명일 때만 admin 계정을 만든다 (AdminInitializer)
+server:
+  forward-headers-strategy: native      # Nginx·로드밸런서 뒤에서 X-Forwarded-* 헤더를 믿는다
+logging:
+  level:
+    org.hibernate.SQL: warn             # 운영에서는 SQL 로그를 끈다 (양이 많고 값이 섞일 수 있음)

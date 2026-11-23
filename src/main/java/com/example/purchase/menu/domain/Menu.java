@@ -38,7 +38,8 @@ public class Menu extends BaseEntity {
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "menu_role", joinColumns = @JoinColumn(name = "menu_id"))
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", length = 20)
+    // MySQL enum(...)이나 CHECK 없이 그냥 varchar: 상수를 추가해도 DB를 안 바꿔도 된다 (troubleshooting 09)
+    @Column(name = "role", length = 20, columnDefinition = "varchar(20)")
     private Set<Role> roles = new HashSet<>();
 
     public Menu(String name, String url, int sortOrder, Set<Role> roles) {

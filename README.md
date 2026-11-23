@@ -3,9 +3,9 @@
 직원이 구매요청서를 쓰면 팀장 → 부서장 → (500만 원 이상이면) 구매팀장 순서로 결재하고,
 승인되면 발주와 재고에 반영되는 사내 업무 시스템입니다.
 
-> 만드는 중입니다. 단계별 진행은 Pull Request 목록을 봐 주세요.
+단계별로 Pull Request를 하나씩 올리며 만들었습니다 (#1 ~ #11). 만들면서 실제로 막힌 문제는 [트러블슈팅](#트러블슈팅-요약)에 남겼습니다.
 
-## 기술 스택 (예정)
+## 기술 스택
 
 Java 17 · Spring Boot 3.3 · Spring Data JPA · QueryDSL · Thymeleaf · Spring Security · Apache POI · MySQL 8 · Spring Batch · JUnit 5 · Docker · GitHub Actions · AWS EC2
 
@@ -32,11 +32,21 @@ docker compose up -d              # MySQL 실행
 | `buylead` | 강구매 (구매팀) | 구매팀 | 품목·거래처 관리, 모든 요청서 보기 |
 - 끄기: `Ctrl+C`, MySQL까지 끄려면 `docker compose down` (데이터는 남음)
 
-테스트 (Docker 없이 메모리 H2로 실행):
+테스트 (Docker 없이 메모리 H2로 실행, 118개):
 
 ```bash
 ./gradlew test
 ```
+
+## 배포 (AWS EC2 + Docker)
+
+- `Dockerfile`: 멀티 스테이지 (JDK로 빌드 → JRE 이미지에 jar만), root가 아닌 사용자로 실행, 한국 시간.
+- `docker-compose.prod.yml`: MySQL 8 + 앱. MySQL은 포트를 열지 않고, 앱은 MySQL이 준비된 뒤(healthcheck) 뜹니다.
+- `prod` 프로필: DB 주소·비밀번호·키는 모두 환경변수(`.env`), 테이블은 **Flyway**(`db/migration`)가 만들고 JPA는 `ddl-auto: validate`로 검사만. 샘플 데이터는 기본으로 끄고, 사용자가 0명이면 `ADMIN_INITIAL_PASSWORD`로 admin 하나만 만듭니다.
+- GitHub Actions
+  - CI: 테스트 + **docker-smoke**(이미지 빌드 → MySQL 8과 함께 띄움 → Flyway·validate → 로그인·관리자 화면 확인 → 재시작 후 다시 확인)
+  - Deploy: main 머지 → 테스트 → `ghcr.io`에 이미지 → (설정 시) SSH로 EC2에서 `deploy/deploy.sh`
+- 순서대로 따라 하는 가이드: [docs/deploy/EC2-배포.md](docs/deploy/EC2-배포.md)
 
 ## 로그인과 권한
 
@@ -93,13 +103,14 @@ docker compose up -d              # MySQL 실행
 | 06 | [트랜잭션 안 외부 API 호출](docs/troubleshooting/06-트랜잭션-안-외부-API-커넥션-풀.md) | 읽기·쓰기 트랜잭션을 나누고 API는 그 밖에서 + 타임아웃 | 풀 2개에서 느린 API 2건 대기 중 다른 조회: 실패 → 즉시 성공 |
 | 07 | [배치 재실행: 이미 완료 거절, UNIQUE 위반](docs/troubleshooting/07-배치-재실행-멱등성.md) | 파라미터 설계(runDate / requestedAt) + upsert writer + dedupKey | 같은 달 다시 집계: 거절·FAILED → 몇 번을 돌려도 줄 1개, 같은 값 |
 | 08 | [감사 로그: 롤백과 커밋 실패](docs/troubleshooting/08-감사-로그-롤백과-커밋-실패.md) | REQUIRES_NEW 저장 + 트랜잭션 바깥 aspect + afterCompletion | 실패 시도 기록 0건 → 1건, 커밋 충돌 승인: 거짓 성공 → 실패로 기록 |
+| 09 | [운영 스키마: Flyway + validate와 enum 컬럼](docs/troubleshooting/09-운영-스키마-Flyway-enum-컬럼.md) | enum 필드를 `columnDefinition = "varchar"`로, 마이그레이션 불변, CI에서 MySQL+Docker로 띄우기 | enum 상수 추가 시 validate 통과 후 `Data truncated` → 코드만 배포, 마이그레이션 누락은 CI에서 발견 |
 
 ## 프로젝트 구조
 
 ```
 src/main/java/com/example/purchase
 ├── common/      BaseEntity(생성·수정 시각·작성자), 업무 예외, 공통 예외 처리, 엑셀 쓰기(POI), 페이지 링크, 첨부 저장
-├── config/      JPA Auditing, QueryDSL, Spring Security, 샘플 데이터
+├── config/      JPA Auditing, QueryDSL, Spring Security, 샘플 데이터(app.sample-data), 첫 관리자 계정
 ├── security/    로그인 사용자(UserDetails), 메뉴 기반 URL 권한 검사
 ├── menu/        메뉴와 역할별 권한
 ├── org/         사용자·부서·직급 (조직도), 사용자 엑셀 다운로드
@@ -119,6 +130,9 @@ src/main/resources/templates
 ├── fragments/   헤더, 왼쪽 메뉴 (역할에 따라 다르게 보임)
 ├── admin/       사용자·부서·직급·메뉴 권한 관리
 └── error/       오류 화면
+src/main/resources/db/migration   Flyway SQL (운영 테이블)
+deploy/          deploy.sh(EC2에서 배포), smoke-test.sh(배포 후 로그인 확인)
+Dockerfile, docker-compose.yml(로컬 MySQL), docker-compose.prod.yml(운영: MySQL + 앱)
 ```
 
 ## 문서
@@ -128,3 +142,4 @@ src/main/resources/templates
 - [화면 목록](docs/03-화면-목록.md)
 - [결재 상태도](docs/04-결재-상태도.md)
 - [트러블슈팅 기록](docs/troubleshooting/README.md)
+- [EC2 배포 가이드](docs/deploy/EC2-배포.md)

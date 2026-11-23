@@ -1,0 +1,12 @@
+# 이미지 빌드에 보낼 필요 없는 것 (빌드가 빨라지고, .env 같은 비밀이 이미지에 들어가지 않는다)
+.git
+.gradle
+build
+uploads
+.env
+*.env.local
+.idea
+*.iml
+.vscode
+docs
+README.md

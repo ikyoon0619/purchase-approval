@@ -27,7 +27,8 @@ public class InventoryHistory extends BaseEntity {
     private Item item;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    // MySQL enum(...)이나 CHECK 없이 그냥 varchar: 상수를 추가해도 DB를 안 바꿔도 된다 (troubleshooting 09)
+    @Column(nullable = false, length = 10, columnDefinition = "varchar(10)")
     private ChangeType changeType;
 
     @Column(nullable = false)

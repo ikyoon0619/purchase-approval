@@ -47,6 +47,10 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // 11단계: 운영 DB 스키마는 Flyway 마이그레이션(src/main/resources/db/migration)으로 관리. prod 프로필에서만 켠다
+    implementation 'org.flywaydb:flyway-core'
+    runtimeOnly 'org.flywaydb:flyway-mysql'
+
     runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'com.h2database:h2'
 
