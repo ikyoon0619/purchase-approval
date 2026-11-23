@@ -61,7 +61,7 @@ class LazyInitializationTest {
     @AfterEach
     void cleanUp() {
         // 트랜잭션 롤백으로 지워지지 않으니 직접 비운다 (기본 메뉴·공통코드는 남긴다)
-        for (String table : new String[]{"attachment", "purchase_request_item", "purchase_request", "item", "vendor", "member", "position"}) {
+        for (String table : new String[]{"approval_line", "attachment", "purchase_request_item", "purchase_request", "item", "vendor", "member", "position"}) {
             jdbc.update("delete from " + table);
         }
         jdbc.update("delete from department where parent_id is not null");

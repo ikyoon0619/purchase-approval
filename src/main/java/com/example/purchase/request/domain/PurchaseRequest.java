@@ -17,12 +17,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 구매요청서 (애그리거트 루트). 품목 줄과 첨부파일은 이 객체를 통해서만 바뀐다.
  * - 금액은 서버에서 다시 계산한다 (BR-07). 화면에서 온 합계는 쓰지 않는다.
  * - 임시저장(DRAFT)일 때만 고칠 수 있다 (BR-05).
- * - version: 6단계 결재 동시 처리(낙관적 락)에 쓴다. 미리 넣어 둔다.
+ * - 결재선(approvalLines)도 이 객체의 메서드(submit/withdraw/approve/reject)로만 바뀐다.
+ * - version: 낙관적 락. 결재 행위는 결재선(자식)만 바뀌는 경우가 있어서, 결재할 때는
+ *   OPTIMISTIC_FORCE_INCREMENT로 읽어 이 version을 강제로 올린다 (docs/troubleshooting/04).
  */
 @Entity
 @Getter
@@ -83,6 +86,14 @@ public class PurchaseRequest extends BaseEntity {
     @OneToMany(mappedBy = "request", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id asc")
     private List<Attachment> attachments = new ArrayList<>();
+
+    /** 몇 번째 상신인지. 회수 후 다시 상신하면 1 → 2 */
+    @Column(nullable = false)
+    private int submitRound = 0;
+
+    @OneToMany(mappedBy = "request", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("round asc, stepOrder asc")
+    private List<ApprovalLine> approvalLines = new ArrayList<>();
 
     private PurchaseRequest(Member requester, String title, String purposeCode, String reason, Vendor vendor) {
         this.requester = requester;
@@ -159,6 +170,109 @@ public class PurchaseRequest extends BaseEntity {
     /** 프록시의 getId()는 DB를 읽지 않는다 (id는 프록시가 이미 알고 있음) */
     public boolean isRequestedBy(Long memberId) {
         return requester.getId().equals(memberId);
+    }
+
+    // ---------------- 결재 (BR-01 ~ BR-04) ----------------
+
+    /**
+     * 상신. 결재선을 만들고 첫 단계를 결재 차례(PENDING)로 둔다.
+     * @param approvers 조직도에서 찾은 결재자 (ApprovalLineResolver가 순서대로 만들어 준다)
+     */
+    public void submit(List<Approver> approvers, LocalDateTime now) {
+        checkEditable();
+        if (approvers.isEmpty()) {
+            throw new BusinessException(ErrorCode.APPROVER_NOT_FOUND, "결재할 사람이 없어 상신할 수 없습니다.");
+        }
+        submitRound++;
+        int step = 1;
+        for (Approver a : approvers) {
+            approvalLines.add(new ApprovalLine(this, submitRound, step, a.member(), a.stepName(),
+                    step == 1 ? LineStatus.PENDING : LineStatus.WAITING));
+            step++;
+        }
+        status = RequestStatus.IN_APPROVAL;
+        submittedAt = now;
+        completedAt = null;
+    }
+
+    /** 회수 (BR-04): 기안자 본인, 첫 결재자가 아직 처리하기 전에만 */
+    public void withdraw(Long memberId) {
+        if (!canWithdraw(memberId)) {
+            throw new BusinessException(ErrorCode.CANNOT_WITHDRAW);
+        }
+        currentLines().forEach(ApprovalLine::cancel);
+        status = RequestStatus.DRAFT;
+        submittedAt = null;
+    }
+
+    /** 승인 (APV-02). 다음 단계가 있으면 넘기고, 마지막이면 문서를 승인으로 */
+    public void approve(Long memberId, String comment, LocalDateTime now) {
+        ApprovalLine line = pendingLineOf(memberId);
+        line.approve(comment, now);
+        Optional<ApprovalLine> next = currentLines().stream()
+                .filter(l -> l.getStatus() == LineStatus.WAITING).findFirst();
+        if (next.isPresent()) {
+            next.get().makePending();
+        } else {
+            status = RequestStatus.APPROVED;
+            completedAt = now;
+        }
+    }
+
+    /** 반려 (APV-03, BR-03). 의견 필수, 남은 단계는 취소 */
+    public void reject(Long memberId, String comment, LocalDateTime now) {
+        if (comment == null || comment.isBlank()) {
+            throw new BusinessException(ErrorCode.REJECT_COMMENT_REQUIRED);
+        }
+        ApprovalLine line = pendingLineOf(memberId);
+        line.reject(comment, now);
+        currentLines().stream().filter(l -> l.getStatus() == LineStatus.WAITING).forEach(ApprovalLine::cancel);
+        status = RequestStatus.REJECTED;
+        completedAt = now;
+    }
+
+    /** 이번 회차 결재선 (회수 전 회차는 이력으로만 남는다) */
+    public List<ApprovalLine> currentLines() {
+        return approvalLines.stream().filter(l -> l.getRound() == submitRound).toList();
+    }
+
+    public Optional<ApprovalLine> pendingLine() {
+        if (status != RequestStatus.IN_APPROVAL) {
+            return Optional.empty();
+        }
+        return currentLines().stream().filter(l -> l.getStatus() == LineStatus.PENDING).findFirst();
+    }
+
+    public boolean isPendingApprover(Long memberId) {
+        return pendingLine().map(l -> l.isApprover(memberId)).orElse(false);
+    }
+
+    public boolean canWithdraw(Long memberId) {
+        if (status != RequestStatus.IN_APPROVAL || !isRequestedBy(memberId)) {
+            return false;
+        }
+        List<ApprovalLine> lines = currentLines();
+        return !lines.isEmpty() && lines.get(0).getStatus() == LineStatus.PENDING;
+    }
+
+    /** 이 문서의 결재선(어느 회차든)에 들어 있는 사람인지. 상세 화면 조회 권한에 쓴다 */
+    public boolean hasApprover(Long memberId) {
+        return approvalLines.stream().anyMatch(l -> l.isApprover(memberId));
+    }
+
+    private ApprovalLine pendingLineOf(Long memberId) {
+        ApprovalLine line = pendingLine().orElseThrow(() -> new BusinessException(ErrorCode.ALREADY_PROCESSED));
+        if (!line.isApprover(memberId)) {
+            // 이미 내 단계를 처리했는데 또 누른 경우(두 탭, 뒤로 가기 후 다시 클릭)는 "차례 아님"보다 "이미 처리됨"이 맞는 안내
+            boolean alreadyDone = currentLines().stream()
+                    .anyMatch(l -> l.isApprover(memberId) && l.getStatus() == LineStatus.APPROVED);
+            throw new BusinessException(alreadyDone ? ErrorCode.ALREADY_PROCESSED : ErrorCode.NOT_YOUR_TURN);
+        }
+        return line;
+    }
+
+    /** 결재선 한 단계에 들어갈 사람 */
+    public record Approver(Member member, String stepName) {
     }
 
     /** 품목 한 줄 입력값 */

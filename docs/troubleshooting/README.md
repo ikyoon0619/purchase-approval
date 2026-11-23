@@ -34,3 +34,4 @@
 | 01 | [사용자 목록을 열 때 쿼리가 11번 나가는 문제 (N+1)](01-사용자-목록-N+1.md) | 3단계 | JPA, N+1, fetch join |
 | 02 | [공통코드 목록: 컬렉션 fetch join + 페이징이 전체를 메모리로 읽는 문제](02-공통코드-페이징-컬렉션-fetch-join.md) | 4단계 | 페이징, 컬렉션 fetch join, batch fetch size |
 | 03 | [open-in-view를 껐더니 부서 검색 화면만 500 (LazyInitializationException)](03-open-in-view-끄고-LazyInitializationException.md) | 5단계 | OSIV, 프록시, 1차 캐시, DTO |
+| 04 | [중간 단계 승인은 version이 안 올라가서, 회수와 승인이 둘 다 성공하는 문제](04-중간-결재는-version이-안-올라가는-문제.md) | 6단계 | 낙관적 락, OPTIMISTIC_FORCE_INCREMENT, @Lock + fetch join |

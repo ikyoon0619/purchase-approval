@@ -105,3 +105,23 @@ input[type=date] { padding: 7px 10px; border: 1px solid var(--line); border-radi
 .btn.danger { color: #c62828; border-color: #f3c2c2; }
 h1 .status { font-size: 13px; vertical-align: middle; margin-left: 6px; }
 .table code, .table .status, .table td.num, .table td.nowrap { white-space: nowrap; }
+
+/* 6단계: 결재선, 결재함 */
+.sidebar a { display: flex; justify-content: space-between; align-items: center; }
+.badge.count { background: #c62828; color: #fff; }
+.alert.flash { margin-bottom: 12px; }
+.approval-line { list-style: none; padding: 0; margin: 8px 0; display: flex; gap: 10px; flex-wrap: wrap; }
+.approval-line li { display: flex; gap: 10px; align-items: flex-start; min-width: 170px; flex: 1; max-width: 260px;
+                    padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fafafa; }
+.approval-line li.pending { border-color: #f0b95b; background: #fffaf0; }
+.approval-line li.approved { border-color: #a5d6a7; background: #f4fbf4; }
+.approval-line li.rejected { border-color: #f3c2c2; background: #fdf3f3; }
+.approval-line li.canceled { opacity: .6; }
+.step-no { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: none;
+           border-radius: 50%; background: var(--primary-weak); color: var(--primary); font-weight: 700; font-size: 12px; }
+.approval-line .comment { margin-top: 6px; padding: 6px 8px; background: #fff; border-radius: 6px; border: 1px solid var(--line); }
+.small { font-size: 12px; }
+.approve-form { max-width: none; margin-top: 14px; border-top: 1px solid var(--line); padding-top: 14px; }
+.tabs { display: flex; gap: 4px; margin-top: 12px; border-bottom: 1px solid var(--line); }
+.tabs a { padding: 9px 14px; border-bottom: 2px solid transparent; color: var(--muted); }
+.tabs a.active { border-color: var(--primary); color: var(--primary); font-weight: 600; }

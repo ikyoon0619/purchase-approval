@@ -1,5 +1,6 @@
 package com.example.purchase.request.web;
 
+import com.example.purchase.approval.service.ApprovalService;
 import com.example.purchase.code.service.CodeService;
 import com.example.purchase.common.excel.ExcelColumn;
 import com.example.purchase.common.excel.ExcelWriter;
@@ -46,6 +47,7 @@ public class RequestController {
     private final ItemService itemService;
     private final VendorService vendorService;
     private final CodeService codeService;
+    private final ApprovalService approvalService;
 
     /** 내 요청 목록 (REQ-06) */
     @GetMapping
@@ -77,9 +79,11 @@ public class RequestController {
             new ExcelColumn<>("상태", r -> r.status().getLabel(), 5),
             new ExcelColumn<>("작성일", RequestRow::createdAt, 9));
 
+    /** copyFrom: 반려된 문서를 복사해서 다시 작성 (BR-03). 첨부파일은 복사하지 않는다 */
     @GetMapping("/new")
-    public String createForm(Model model) {
-        model.addAttribute("form", RequestForm.empty());
+    public String createForm(@RequestParam(required = false) Long copyFrom, @AuthenticationPrincipal LoginUser user,
+                             Model model) {
+        model.addAttribute("form", copyFrom == null ? RequestForm.empty() : RequestForm.copyOf(requestService.getDetail(copyFrom, user)));
         return formView(model, null);
     }
 
@@ -97,13 +101,17 @@ public class RequestController {
             bindingResult.reject(e.getErrorCode().getCode(), e.getMessage());
             return formView(model, null);
         }
-        redirect.addFlashAttribute("toast", "임시저장했습니다. 상신은 6단계에서 붙습니다.");
+        redirect.addFlashAttribute("toast", "임시저장했습니다. 내용을 확인한 뒤 상신해 주세요.");
         return "redirect:/requests/" + id;
     }
 
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, @AuthenticationPrincipal LoginUser user, Model model) {
-        model.addAttribute("r", requestService.getDetail(id, user));
+        RequestDetail detail = requestService.getDetail(id, user);
+        model.addAttribute("r", detail);
+        if (detail.canSubmit()) {
+            model.addAttribute("preview", approvalService.preview(id)); // 상신하면 만들어질 결재선 미리보기
+        }
         return "requests/detail";
     }
 

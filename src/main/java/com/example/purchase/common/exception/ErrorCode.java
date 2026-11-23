@@ -45,7 +45,13 @@ public enum ErrorCode {
     TOO_MANY_ATTACHMENTS(HttpStatus.BAD_REQUEST, "R004", "첨부파일은 5개까지 올릴 수 있습니다."),
     ATTACHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "R005", "첨부파일을 찾을 수 없습니다."),
     FILE_TOO_LARGE(HttpStatus.BAD_REQUEST, "R006", "파일은 한 개에 10MB, 한 번에 50MB까지 올릴 수 있습니다."),
-    FILE_STORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "R007", "파일을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    FILE_STORE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "R007", "파일을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요."),
+
+    APPROVER_NOT_FOUND(HttpStatus.BAD_REQUEST, "A001", "결재자를 찾을 수 없어 상신할 수 없습니다. 관리자에게 조직도를 확인해 달라고 요청해 주세요."),
+    NOT_YOUR_TURN(HttpStatus.FORBIDDEN, "A002", "지금 결재할 차례가 아닙니다."),
+    ALREADY_PROCESSED(HttpStatus.CONFLICT, "A003", "다른 사용자가 먼저 처리했습니다. 화면을 새로 고쳐 확인해 주세요."),
+    CANNOT_WITHDRAW(HttpStatus.CONFLICT, "A004", "첫 결재자가 처리하기 전에만 회수할 수 있습니다."),
+    REJECT_COMMENT_REQUIRED(HttpStatus.BAD_REQUEST, "A005", "반려할 때는 의견을 꼭 적어 주세요.");
 
     private final HttpStatus status;
     private final String code;
