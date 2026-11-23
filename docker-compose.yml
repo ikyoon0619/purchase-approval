@@ -1,0 +1,21 @@
+# 로컬 개발용 MySQL. 실행: docker compose up -d
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: purchase-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-purchase}
+      MYSQL_USER: ${DB_USERNAME:-purchase}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-purchase}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      TZ: Asia/Seoul
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql-data:/var/lib/mysql   # 컨테이너를 지워도 데이터는 남는다
+
+volumes:
+  mysql-data:

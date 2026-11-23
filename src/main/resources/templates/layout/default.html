@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title layout:title-pattern="$CONTENT_TITLE · 구매결재">구매결재</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main class="content" layout:fragment="content">
+        <!-- 각 화면의 내용이 여기에 들어간다 -->
+    </main>
+</div>
+</body>
+</html>
