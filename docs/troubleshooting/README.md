@@ -37,3 +37,4 @@
 | 04 | [중간 단계 승인은 version이 안 올라가서, 회수와 승인이 둘 다 성공하는 문제](04-중간-결재는-version이-안-올라가는-문제.md) | 6단계 | 낙관적 락, OPTIMISTIC_FORCE_INCREMENT, @Lock + fetch join |
 | 05 | [같은 품목을 동시에 입고하면 재고 수량이 어긋나는 문제](05-동시-입고-재고-유실.md) | 7단계 | Lost Update, 비관적 락, FOR UPDATE, 데드락 |
 | 06 | [트랜잭션 안에서 외부 API를 부르면 커넥션 풀이 바닥나는 문제](06-트랜잭션-안-외부-API-커넥션-풀.md) | 8단계 | @Transactional 범위, HikariCP, 타임아웃, 서비스 키 인코딩 |
+| 07 | [같은 달 통계를 다시 집계하면: "이미 완료" 거절, 그다음엔 UNIQUE 위반](07-배치-재실행-멱등성.md) | 9단계 | Spring Batch, JobParameters, 멱등성, upsert, tasklet 트랜잭션 |

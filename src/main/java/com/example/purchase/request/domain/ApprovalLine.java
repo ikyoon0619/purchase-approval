@@ -53,13 +53,23 @@ public class ApprovalLine extends BaseTimeEntity {
 
     private LocalDateTime processedAt;
 
-    ApprovalLine(PurchaseRequest request, int round, int stepOrder, Member approver, String stepName, LineStatus status) {
+    /**
+     * 이 단계가 결재 차례(PENDING)가 된 시각. 결재 지연 알림(APV-05)이 "며칠째 기다리는지"를 여기서 센다.
+     * 9단계에서 추가해서 그 전에 만든 행은 비어 있다 → 조회할 때 created_at으로 대신한다.
+     */
+    private LocalDateTime pendingAt;
+
+    ApprovalLine(PurchaseRequest request, int round, int stepOrder, Member approver, String stepName, LineStatus status,
+                 LocalDateTime now) {
         this.request = request;
         this.round = round;
         this.stepOrder = stepOrder;
         this.approver = approver;
         this.stepName = stepName;
         this.status = status;
+        if (status == LineStatus.PENDING) {
+            this.pendingAt = now;
+        }
     }
 
     /** 프록시의 getId()는 DB를 읽지 않는다 */
@@ -67,8 +77,9 @@ public class ApprovalLine extends BaseTimeEntity {
         return approver.getId().equals(memberId);
     }
 
-    void makePending() {
+    void makePending(LocalDateTime now) {
         this.status = LineStatus.PENDING;
+        this.pendingAt = now;
     }
 
     void approve(String comment, LocalDateTime now) {

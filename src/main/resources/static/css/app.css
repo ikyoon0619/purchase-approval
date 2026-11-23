@@ -129,3 +129,24 @@ h1 .status { font-size: 13px; vertical-align: middle; margin-left: 6px; }
 /* 7단계: 발주·재고 */
 .short { color: #b26a00; font-weight: 600; }
 label.check { display: inline-flex; align-items: center; gap: 6px; }
+
+/* 9단계: 대시보드·통계 */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.kpi .label { color: var(--muted); font-size: 13px; }
+.kpi .value { font-size: 24px; font-weight: 700; margin-top: 4px; }
+a.kpi:hover { border-color: var(--primary); }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.bars li { display: grid; grid-template-columns: 70px 1fr 110px; align-items: center; gap: 8px; }
+.bars .track { display: block; background: var(--bg); border-radius: 4px; height: 14px; overflow: hidden; }
+.bars .fill { display: block; background: var(--primary); height: 100%; border-radius: 4px; min-width: 2px; }
+.bars .fill.zero { background: transparent; }
+.bars .amount { text-align: right; font-variant-numeric: tabular-nums; }
+.notice-list { list-style: none; margin: 0; padding: 0; }
+.notice-list li { padding: 8px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
+.notice-list li.unread .msg { font-weight: 600; }
+.notice-list button.btn-link { text-align: left; }
+.table.stats td.num, .table.stats th.num { white-space: nowrap; }
+.table.stats tfoot td { font-weight: 700; border-top: 2px solid var(--line); }
+.table-scroll { overflow-x: auto; }

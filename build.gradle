@@ -27,6 +27,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    // 9단계: 매일 밤 통계 집계·결재 지연 알림·거래처 상태 갱신 (실행 이력은 BATCH_ 테이블에 남는다)
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     // Thymeleaf 공통 레이아웃 (layout:decorate)
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
@@ -48,6 +50,7 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.batch:spring-batch-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

@@ -16,3 +16,5 @@ app:
   nts:
     service-key: ""                  # 내 맥의 .env에 진짜 키가 있어도 테스트는 국세청을 부르지 않는다
     base-url: http://localhost:1     # 혹시 불러도 바로 실패하는 주소
+  batch:
+    scheduling-enabled: false        # 테스트 중에 02:00 스케줄이 돌지 않게. job은 테스트가 직접 실행한다

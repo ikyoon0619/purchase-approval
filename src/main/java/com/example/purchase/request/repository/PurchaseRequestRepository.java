@@ -48,4 +48,9 @@ public interface PurchaseRequestRepository extends JpaRepository<PurchaseRequest
             """,
             countQuery = "select count(r) from PurchaseRequest r where r.status = com.example.purchase.request.domain.RequestStatus.APPROVED")
     org.springframework.data.domain.Page<PurchaseRequest> findApprovedForOrder(org.springframework.data.domain.Pageable pageable);
+
+    /** 대시보드: 내 임시저장·결재중 건수 */
+    long countByRequesterIdAndStatus(Long requesterId, com.example.purchase.request.domain.RequestStatus status);
+
+    boolean existsByTitle(String title);
 }

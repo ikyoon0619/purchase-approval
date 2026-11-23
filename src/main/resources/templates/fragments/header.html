@@ -7,6 +7,8 @@
             <span class="muted">(<span sec:authentication="principal.departmentName">개발팀</span>
                 · <span sec:authentication="principal.role.label">직원</span>)</span>
         </span>
+        <a class="link" th:href="@{/notifications}">알림<span th:if="${unreadNotificationCount > 0}"
+            class="badge count" th:text="${unreadNotificationCount}">3</span></a>
         <!-- 로그아웃은 POST + CSRF 토큰이어야 한다 (th:action이 토큰을 자동으로 넣음) -->
         <form th:action="@{/logout}" method="post" class="inline">
             <button type="submit" class="btn-link">로그아웃</button>

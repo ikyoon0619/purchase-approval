@@ -31,6 +31,14 @@ spring:
       max-request-size: 50MB    # 한 번에 올리는 전체 (5개 × 10MB)
   thymeleaf:
     cache: false            # 화면 수정 후 새로고침만 하면 바로 반영
+  batch:
+    job:
+      enabled: false        # 앱이 뜰 때 job을 자동으로 돌리지 않는다. 스케줄러(매일 02:00)와 통계 화면 버튼으로만 실행
+    jdbc:
+      # 실행 이력 테이블(BATCH_JOB_INSTANCE 등)을 만든다. 기본값 embedded는 H2 같은 내장 DB에서만 만들어서,
+      # 테스트(H2)는 통과하는데 MySQL에서는 BATCH_ 테이블이 없다는 오류로 job이 실패한다.
+      # 이미 테이블이 있으면 CREATE 오류를 무시하고 넘어가므로(continueOnError) 재시작해도 괜찮다
+      initialize-schema: always
 
 app:
   upload-dir: ${UPLOAD_DIR:./uploads}   # 첨부파일 저장 위치
@@ -39,6 +47,10 @@ app:
     service-key: ${NTS_SERVICE_KEY:}    # 비어 있으면 호출하지 않고 "확인 안 됨"으로 저장
     connect-timeout: 2s
     read-timeout: 3s
+  batch:
+    scheduling-enabled: ${BATCH_SCHEDULING_ENABLED:true}   # 매일 밤 배치를 돌릴지
+    nightly-cron: "0 0 2 * * *"         # 초 분 시 일 월 요일 → 매일 02:00 (한국 시간)
+    approval-delay-days: 3              # 결재 대기가 이 일수를 넘으면 결재자에게 알림 (APV-05)
 
 server:
   port: 8080

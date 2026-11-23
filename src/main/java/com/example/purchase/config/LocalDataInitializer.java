@@ -90,6 +90,46 @@ public class LocalDataInitializer implements ApplicationRunner {
         if (approvalLineRepository.count() == 0) {
             insertApprovalSamples();
         }
+        // 9단계: 통계 차트가 비어 보이지 않게 지난 몇 달의 승인 문서, 결재 지연 알림 대상(5일째 대기) 1건
+        if (!requestRepository.existsByTitle(DELAYED_SAMPLE_TITLE)) {
+            insertStatsSamples();
+        }
+    }
+
+    static final String DELAYED_SAMPLE_TITLE = "회의실 도킹 스테이션 3대";
+
+    private void insertStatsSamples() {
+        Member dev2 = memberRepository.findByLoginIdWithDepartment("dev2").orElse(null);
+        Member sales1 = memberRepository.findByLoginIdWithDepartment("sales1").orElse(null);
+        if (dev2 == null || sales1 == null) {
+            return;
+        }
+        Map<String, Item> items = new java.util.HashMap<>();
+        itemRepository.findAll().forEach(i -> items.put(i.getCode(), i));
+        Vendor vendor = vendorRepository.findAll().stream().filter(Vendor::isSelectable).findFirst().orElseThrow();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        // {기안자, 제목, 품목, 수량, 몇 달 전}
+        Object[][] approved = {
+                {dev2, "신규 입사자 노트북", "IT-0001", 2, 5}, {sales1, "영업팀 모니터", "IT-0002", 3, 5},
+                {dev2, "개발팀 도킹 스테이션", "IT-0004", 6, 4}, {sales1, "전시회 복사용지", "OF-0001", 20, 4},
+                {dev2, "테스트용 노트북", "IT-0001", 1, 3}, {dev2, "키보드·마우스 교체", "IT-0003", 10, 3},
+                {sales1, "영업팀 노트북", "IT-0001", 2, 2}, {dev2, "듀얼 모니터", "IT-0002", 8, 2},
+                {dev2, "개발팀 사무용품", "OF-0002", 30, 1}, {sales1, "영업팀 모니터 추가", "IT-0002", 4, 1},
+                {dev2, "프로젝트 노트북", "IT-0001", 2, 0}, {sales1, "영업팀 복사용지", "OF-0001", 15, 0},
+        };
+        for (Object[] a : approved) {
+            java.time.LocalDateTime at = now.minusMonths((int) a[4]).withDayOfMonth(Math.min(now.getDayOfMonth(), 10));
+            if (at.isAfter(now.minusHours(1))) {
+                at = now.minusHours(2);
+            }
+            PurchaseRequest r = sample((Member) a[0], (String) a[1], vendor, items.get((String) a[2]), (int) a[3], at.minusDays(1));
+            while (r.getStatus() == com.example.purchase.request.domain.RequestStatus.IN_APPROVAL) {
+                Long approverId = r.pendingLine().orElseThrow().getApprover().getId();
+                r.approve(approverId, null, at);
+            }
+        }
+        sample(dev2, DELAYED_SAMPLE_TITLE, vendor, items.get("IT-0004"), 3, now.minusDays(5));   // 이팀장 차례로 5일째
+        log.info("통계·결재 지연 샘플을 넣었습니다 (승인 {}건, 지연 1건).", approved.length);
     }
 
     /**

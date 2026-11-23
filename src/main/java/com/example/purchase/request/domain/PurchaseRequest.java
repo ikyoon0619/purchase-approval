@@ -187,7 +187,7 @@ public class PurchaseRequest extends BaseEntity {
         int step = 1;
         for (Approver a : approvers) {
             approvalLines.add(new ApprovalLine(this, submitRound, step, a.member(), a.stepName(),
-                    step == 1 ? LineStatus.PENDING : LineStatus.WAITING));
+                    step == 1 ? LineStatus.PENDING : LineStatus.WAITING, now));
             step++;
         }
         status = RequestStatus.IN_APPROVAL;
@@ -212,7 +212,7 @@ public class PurchaseRequest extends BaseEntity {
         Optional<ApprovalLine> next = currentLines().stream()
                 .filter(l -> l.getStatus() == LineStatus.WAITING).findFirst();
         if (next.isPresent()) {
-            next.get().makePending();
+            next.get().makePending(now);
         } else {
             status = RequestStatus.APPROVED;
             completedAt = now;
