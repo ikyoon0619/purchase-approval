@@ -49,7 +49,7 @@ public class Vendor extends BaseEntity {
         this.used = used;
     }
 
-    /** 지금은 담당자가 직접 바꾼다. 8단계에서 국세청 API 결과로 바꾼다 */
+    /** 국세청 확인 결과(VendorStatusService) 또는 담당자가 직접 바꾼다. 확인 안 됨이면 checkedAt도 남겨 '언제 시도했는지' 보이게 */
     public void changeStatus(VendorStatus status, LocalDateTime checkedAt) {
         this.status = status;
         this.statusCheckedAt = checkedAt;

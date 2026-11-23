@@ -13,3 +13,6 @@ spring:
 
 app:
   upload-dir: build/test-uploads
+  nts:
+    service-key: ""                  # 내 맥의 .env에 진짜 키가 있어도 테스트는 국세청을 부르지 않는다
+    base-url: http://localhost:1     # 혹시 불러도 바로 실패하는 주소

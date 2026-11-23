@@ -7,9 +7,15 @@
 <main layout:fragment="content">
     <div class="page-head">
         <h1>거래처 관리</h1>
-        <a class="btn" th:href="@{/master/vendors/new}">거래처 등록</a>
+        <div class="search">
+            <form class="inline" th:action="@{/master/vendors/check-all}" method="post">
+                <button type="submit" class="btn secondary">전체 상태 확인</button>
+            </form>
+            <a class="btn" th:href="@{/master/vendors/new}">거래처 등록</a>
+        </div>
     </div>
-    <p class="muted">휴업·폐업 거래처는 새 구매요청서에서 고를 수 없습니다. (사업자 상태 자동 확인은 8단계)</p>
+    <p class="muted">휴업·폐업 거래처는 새 구매요청서에서 고를 수 없습니다. 사업자 상태는 국세청 API로 확인합니다.</p>
+    <p class="alert" th:unless="${apiEnabled}">국세청 API 키가 설정되지 않았습니다. <code>.env</code>에 <code>NTS_SERVICE_KEY</code>를 넣으면 상태 확인 버튼이 동작합니다.</p>
     <form class="card search" th:action="@{/master/vendors}" method="get">
         <input type="text" name="keyword" placeholder="상호 또는 사업자번호" th:value="${keyword}">
         <select name="status">
@@ -30,7 +36,12 @@
                 <td><span th:class="'status ' + ${v.status.css}" th:text="${v.status.label}">정상</span></td>
                 <td class="muted" th:text="${v.statusCheckedAt != null ? #temporals.format(v.statusCheckedAt, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
                 <td th:text="${v.used} ? '사용' : '중지'">사용</td>
-                <td><a th:href="@{/master/vendors/{id}/edit(id=${v.id})}">수정</a></td>
+                <td class="nowrap">
+                    <form class="inline" th:action="@{/master/vendors/{id}/check-status(id=${v.id})}" method="post">
+                        <button type="submit" class="btn small secondary">상태 확인</button>
+                    </form>
+                    <a class="link" th:href="@{/master/vendors/{id}/edit(id=${v.id})}">수정</a>
+                </td>
             </tr>
             <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="muted">조건에 맞는 거래처가 없습니다.</td></tr>
             </tbody>

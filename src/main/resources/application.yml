@@ -1,6 +1,9 @@
 spring:
   application:
     name: purchase-approval
+  config:
+    # 프로젝트 폴더의 .env(키=값)를 설정으로 읽는다. 없으면 무시. DB 비밀번호, 국세청 API 키를 여기에 둔다
+    import: optional:file:.env[.properties]
   profiles:
     default: local          # 프로필을 안 정하면 local(MySQL)로 뜬다
   jpa:
@@ -31,6 +34,11 @@ spring:
 
 app:
   upload-dir: ${UPLOAD_DIR:./uploads}   # 첨부파일 저장 위치
+  nts:                                  # 국세청 사업자등록 상태조회 (공공데이터포털)
+    base-url: https://api.odcloud.kr/api/nts-businessman/v1
+    service-key: ${NTS_SERVICE_KEY:}    # 비어 있으면 호출하지 않고 "확인 안 됨"으로 저장
+    connect-timeout: 2s
+    read-timeout: 3s
 
 server:
   port: 8080
