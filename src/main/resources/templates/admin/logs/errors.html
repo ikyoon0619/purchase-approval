@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>에러 로그</title></head>
+<body>
+<main layout:fragment="content">
+    <h1>에러 로그</h1>
+    <p class="muted">처리하지 못한 예외입니다. 사용자 화면에 보인 "오류 번호"로 찾을 수 있습니다. 업무 규칙 위반(권한 없음, 이미 처리됨 등)은 여기 남지 않습니다.</p>
+    <form class="card search" th:action="@{/admin/error-logs}" method="get">
+        <input type="text" name="keyword" placeholder="예외 이름 또는 주소" th:value="${keyword}">
+        <button type="submit" class="btn secondary">검색</button>
+    </form>
+    <section class="card">
+        <p class="muted">총 <strong th:text="${page.totalElements}">0</strong>건</p>
+        <table class="table">
+            <thead><tr><th>번호</th><th>시각</th><th>어디서</th><th>사용자</th><th>예외</th><th>메시지</th></tr></thead>
+            <tbody>
+            <tr th:each="e : ${page.content}">
+                <td><a class="link" th:href="@{/admin/error-logs/{id}(id=${e.id})}" th:text="'#' + ${e.id}">#1</a></td>
+                <td class="nowrap muted" th:text="${#temporals.format(e.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-11-23</td>
+                <td class="nowrap"><code th:text="${e.source}">GET /requests/3</code></td>
+                <td th:text="${e.loginId}">dev1</td>
+                <td><code th:text="${e.shortClass()}">NullPointerException</code></td>
+                <td class="small" th:text="${e.message != null and e.message.length() > 80} ? ${e.message.substring(0, 80)} + '…' : ${e.message}">-</td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="6" class="muted">기록이 없습니다.</td></tr>
+            </tbody>
+        </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>

@@ -1,5 +1,7 @@
 package com.example.purchase.master.service;
 
+import com.example.purchase.audit.AuditAction;
+import com.example.purchase.audit.Audited;
 import com.example.purchase.common.exception.BusinessException;
 import com.example.purchase.common.exception.ErrorCode;
 import com.example.purchase.master.domain.Item;
@@ -36,6 +38,7 @@ public class ItemService {
     }
 
     @Transactional
+    @Audited(action = AuditAction.CREATE, target = "품목", id = "#result")
     public Long create(ItemForm form) {
         if (itemRepository.existsByCode(form.getCode())) {
             throw new BusinessException(ErrorCode.DUPLICATE_ITEM_CODE);
@@ -47,6 +50,7 @@ public class ItemService {
     }
 
     @Transactional
+    @Audited(action = AuditAction.UPDATE, target = "품목", id = "#id")
     public void update(Long id, ItemForm form) {
         get(id).update(form.getName(), form.getCategoryCode(), form.getUnitCode(), form.getStandardPrice(), form.isUsed());
     }

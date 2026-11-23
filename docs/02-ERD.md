@@ -192,8 +192,8 @@ erDiagram
 | monthly_purchase_stat | id, stat_month, department_id, request_count, total_amount, aggregated_at, UNIQUE(stat_month, department_id) | 배치 집계 결과. `year_month`는 MySQL 예약어라 `stat_month`로 |
 | notification | id, member_id, message, link_url, dedup_key UNIQUE, read_at | 결재 지연 알림. dedup_key로 같은 일에 한 번만 |
 | BATCH_* | Spring Batch가 만드는 실행 이력 테이블 | 어떤 job이 어떤 파라미터로 언제 돌았고 성공했는지 |
-| audit_log | id, member_id, action, target_type, target_id, detail, ip, created_at | 누가 무엇을 바꿨는지 |
-| error_log | id, request_uri, exception_class, message, created_at | 처리 못 한 예외 |
+| audit_log | id, member_id, login_id, action, target_type, target_id, success, detail, ip, created_at | 누가 무엇을 바꿨는지 (실패 시도 포함). 회원 FK 없이 값으로 복사 |
+| error_log | id, source(요청 주소 또는 배치 이름), login_id, exception_class, message, stack_trace, created_at | 처리 못 한 예외. 화면에는 오류 번호(id) |
 
 ## 3. 설계하며 정한 것
 

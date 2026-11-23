@@ -1,5 +1,7 @@
 package com.example.purchase.org.service;
 
+import com.example.purchase.audit.AuditAction;
+import com.example.purchase.audit.Audited;
 import com.example.purchase.common.exception.BusinessException;
 import com.example.purchase.common.exception.ErrorCode;
 import com.example.purchase.org.domain.Member;
@@ -40,6 +42,7 @@ public class MemberService {
     }
 
     @Transactional
+    @Audited(action = AuditAction.CREATE, target = "사용자", id = "#result")
     public Long create(MemberForm form) {
         if (memberRepository.existsByLoginId(form.getLoginId())) {
             throw new BusinessException(ErrorCode.DUPLICATE_LOGIN_ID);
@@ -60,6 +63,7 @@ public class MemberService {
 
     /** 비밀번호 칸을 비워 두면 기존 비밀번호를 그대로 둔다 */
     @Transactional
+    @Audited(action = AuditAction.UPDATE, target = "사용자", id = "#id")
     public void update(Long id, MemberForm form) {
         Member member = get(id);
         member.update(

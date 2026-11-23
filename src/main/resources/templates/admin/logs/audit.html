@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>감사 로그</title></head>
+<body>
+<main layout:fragment="content">
+    <h1>감사 로그</h1>
+    <p class="muted">누가 언제 무엇을 했는지. 실패한 시도(권한 없음, 동시 처리 충돌 등)도 남습니다.</p>
+    <form class="card search" th:action="@{/admin/audit-logs}" method="get">
+        <input type="text" name="loginId" placeholder="아이디" th:value="${cond.loginId()}" class="short">
+        <select name="action">
+            <option value="">전체 행위</option>
+            <option th:each="a : ${actions}" th:value="${a}" th:text="${a.label}" th:selected="${a == cond.action()}">승인</option>
+        </select>
+        <input type="text" name="targetType" placeholder="대상 (예: 구매요청서)" th:value="${cond.targetType()}" class="short">
+        <input type="text" name="targetId" placeholder="대상 번호" th:value="${cond.targetId()}" class="short">
+        <select name="success">
+            <option value="">성공·실패</option>
+            <option value="true" th:selected="${cond.success() == true}">성공</option>
+            <option value="false" th:selected="${cond.success() == false}">실패</option>
+        </select>
+        <input type="date" name="from" th:value="${cond.from()}"> ~ <input type="date" name="to" th:value="${cond.to()}">
+        <button type="submit" class="btn secondary">검색</button>
+    </form>
+    <section class="card">
+        <p class="muted">총 <strong th:text="${page.totalElements}">0</strong>건</p>
+        <table class="table">
+            <thead><tr><th>시각</th><th>아이디</th><th>행위</th><th>대상</th><th>결과</th><th>내용</th><th>IP</th></tr></thead>
+            <tbody>
+            <tr th:each="l : ${page.content}">
+                <td class="nowrap muted" th:text="${#temporals.format(l.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-11-23 10:00:00</td>
+                <td th:text="${l.loginId}">devlead</td>
+                <td class="nowrap" th:text="${l.action.label}">승인</td>
+                <td class="nowrap">
+                    <a th:if="${l.targetType == '구매요청서' and l.targetId != null}" class="link"
+                       th:href="@{/requests/{id}(id=${l.targetId})}" th:text="${l.targetType} + ' #' + ${l.targetId}">구매요청서 #3</a>
+                    <span th:unless="${l.targetType == '구매요청서' and l.targetId != null}"
+                          th:text="${l.targetType} + (${l.targetId != null} ? ' #' + ${l.targetId} : '')">품목 #2</span>
+                </td>
+                <td><span class="status" th:classappend="${l.success} ? 'ok' : 'off'" th:text="${l.success} ? '성공' : '실패'">성공</span></td>
+                <td class="small" th:text="${l.detail}">-</td>
+                <td class="muted small" th:text="${l.ip}">127.0.0.1</td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="muted">기록이 없습니다.</td></tr>
+            </tbody>
+        </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>

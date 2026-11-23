@@ -1,5 +1,7 @@
 package com.example.purchase.approval.service;
 
+import com.example.purchase.audit.AuditAction;
+import com.example.purchase.audit.Audited;
 import com.example.purchase.approval.repository.ApprovalLineRepository;
 import com.example.purchase.approval.repository.InboxTab;
 import com.example.purchase.common.exception.BusinessException;
@@ -36,6 +38,7 @@ public class ApprovalService {
     private final ApprovalLineRepository lineRepository;
     private final ApprovalLineResolver resolver;
 
+    @Audited(action = AuditAction.SUBMIT, target = "구매요청서", id = "#requestId")
     public void submit(Long requestId, LoginUser user) {
         PurchaseRequest request = findForApproval(requestId);
         if (!request.isRequestedBy(user.getId())) {
@@ -45,14 +48,17 @@ public class ApprovalService {
         request.submit(resolver.resolve(request), LocalDateTime.now());
     }
 
+    @Audited(action = AuditAction.WITHDRAW, target = "구매요청서", id = "#requestId")
     public void withdraw(Long requestId, LoginUser user) {
         findForApproval(requestId).withdraw(user.getId());
     }
 
+    @Audited(action = AuditAction.APPROVE, target = "구매요청서", id = "#requestId")
     public void approve(Long requestId, LoginUser user, String comment) {
         findForApproval(requestId).approve(user.getId(), clean(comment), LocalDateTime.now());
     }
 
+    @Audited(action = AuditAction.REJECT, target = "구매요청서", id = "#requestId")
     public void reject(Long requestId, LoginUser user, String comment) {
         findForApproval(requestId).reject(user.getId(), clean(comment), LocalDateTime.now());
     }

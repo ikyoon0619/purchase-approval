@@ -10,7 +10,8 @@
     <h1>문제가 생겼어요</h1>
     <section class="card">
         <p th:text="${message}">처리 중 오류가 발생했습니다.</p>
-        <p class="muted">오류 코드: <span th:text="${code}">C999</span></p>
+        <p class="muted">오류 코드: <span th:text="${code}">C999</span>
+            <span th:if="${errorId != null}"> · 오류 번호 <strong th:text="'#' + ${errorId}">#12</strong> (관리자에게 이 번호를 알려 주세요)</span></p>
         <a class="btn" th:href="@{/}">첫 화면으로</a>
     </section>
 </main>

@@ -1,5 +1,7 @@
 package com.example.purchase.request.service;
 
+import com.example.purchase.audit.AuditAction;
+import com.example.purchase.audit.Audited;
 import com.example.purchase.code.service.CodeService;
 import com.example.purchase.common.exception.BusinessException;
 import com.example.purchase.common.exception.ErrorCode;
@@ -82,6 +84,7 @@ public class RequestService {
     // ---------------- 변경 ----------------
 
     @Transactional
+    @Audited(action = AuditAction.CREATE, target = "구매요청서", id = "#result")
     public Long create(RequestForm form, List<MultipartFile> files, LoginUser user) {
         Member requester = memberService.get(user.getId());
         Vendor vendor = vendorService.getSelectable(form.getVendorId());
@@ -96,6 +99,7 @@ public class RequestService {
     }
 
     @Transactional
+    @Audited(action = AuditAction.UPDATE, target = "구매요청서", id = "#id")
     public void update(Long id, RequestForm form, List<MultipartFile> files, LoginUser user) {
         PurchaseRequest request = findDetail(id);
         checkOwner(request, user);
@@ -113,6 +117,7 @@ public class RequestService {
     }
 
     @Transactional
+    @Audited(action = AuditAction.DELETE, target = "구매요청서", id = "#id")
     public void delete(Long id, LoginUser user) {
         PurchaseRequest request = findDetail(id);
         checkOwner(request, user);

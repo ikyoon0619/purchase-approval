@@ -150,3 +150,6 @@ a.kpi:hover { border-color: var(--primary); }
 .table.stats td.num, .table.stats th.num { white-space: nowrap; }
 .table.stats tfoot td { font-weight: 700; border-top: 2px solid var(--line); }
 .table-scroll { overflow-x: auto; }
+
+/* 10단계: 로그 */
+.pre.stack { font-size: 12px; max-height: 520px; overflow: auto; background: var(--bg); padding: 12px; border-radius: 6px; white-space: pre; }

@@ -1,5 +1,7 @@
 package com.example.purchase.menu.service;
 
+import com.example.purchase.audit.AuditAction;
+import com.example.purchase.audit.Audited;
 import com.example.purchase.common.exception.BusinessException;
 import com.example.purchase.common.exception.ErrorCode;
 import com.example.purchase.menu.domain.Menu;
@@ -45,6 +47,7 @@ public class MenuService {
     }
 
     @Transactional
+    @Audited(action = AuditAction.PERMISSION, target = "메뉴 권한")
     public void changeRoles(Map<Long, Set<Role>> rolesByMenuId) {
         rolesByMenuId.forEach((menuId, roles) -> menuRepository.findById(menuId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND))

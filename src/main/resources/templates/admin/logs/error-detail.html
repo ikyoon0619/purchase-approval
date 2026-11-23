@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>에러 상세</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1 th:text="'에러 #' + ${log.id}">에러 #1</h1>
+        <a class="btn secondary" th:href="@{/admin/error-logs}">목록</a>
+    </div>
+    <section class="card">
+        <dl class="info">
+            <dt>시각</dt><dd th:text="${#temporals.format(log.createdAt, 'yyyy-MM-dd HH:mm:ss')}">-</dd>
+            <dt>어디서</dt><dd><code th:text="${log.source}">GET /</code></dd>
+            <dt>사용자</dt><dd th:text="${log.loginId ?: '-'}">dev1</dd>
+            <dt>예외</dt><dd><code th:text="${log.exceptionClass}">java.lang.IllegalStateException</code></dd>
+            <dt>메시지</dt><dd th:text="${log.message}">-</dd>
+        </dl>
+    </section>
+    <section class="card">
+        <h2>스택 트레이스</h2>
+        <pre class="pre stack" th:text="${log.stackTrace}">...</pre>
+    </section>
+</main>
+</body>
+</html>

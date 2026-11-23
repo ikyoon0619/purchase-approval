@@ -74,6 +74,13 @@ docker compose up -d              # MySQL 실행
 - 다시 집계해도 결과가 같습니다(upsert). 야간 배치는 하루 한 번만 돕니다(`runDate` 파라미터) (트러블슈팅 07).
 - local에서는 시작할 때 통계가 비어 있으면 최근 6개월을 한 번 집계합니다. 샘플: `devlead` 로그인 → 5일째 대기 문서 알림.
 
+## 감사 로그·에러 로그 (AOP)
+
+- 서비스 메서드에 `@Audited(action, target, id)` 한 줄을 붙이면 `AuditAspect`가 누가·언제·무엇을·어느 대상에·성공/실패·IP를 남깁니다 (요청서, 결재, 발주·입고·출고, 기준정보, 사용자·부서, 메뉴 권한, 수동 집계).
+- 실패한 시도도 남고(REQUIRES_NEW), "성공"은 커밋이 확정된 뒤에 씁니다 (트러블슈팅 08).
+- 처리하지 못한 예외는 `error_log`에 저장하고 사용자에게 오류 번호를 보여 줍니다. 야간 배치 실패도 저장합니다.
+- 관리자 메뉴: 감사 로그(아이디·행위·대상·성공 여부·기간 검색), 에러 로그(목록, 스택 트레이스 상세).
+
 ## 트러블슈팅 (요약)
 
 | # | 문제 | 해결 | 결과 |
@@ -85,6 +92,7 @@ docker compose up -d              # MySQL 실행
 | 05 | [동시 입고 재고 유실](docs/troubleshooting/05-동시-입고-재고-유실.md) | `SELECT … FOR UPDATE` + 잠금 순서 고정 | 동시 입고 5+3: 3개(유실) → 10명 동시 +1: 항상 10개 |
 | 06 | [트랜잭션 안 외부 API 호출](docs/troubleshooting/06-트랜잭션-안-외부-API-커넥션-풀.md) | 읽기·쓰기 트랜잭션을 나누고 API는 그 밖에서 + 타임아웃 | 풀 2개에서 느린 API 2건 대기 중 다른 조회: 실패 → 즉시 성공 |
 | 07 | [배치 재실행: 이미 완료 거절, UNIQUE 위반](docs/troubleshooting/07-배치-재실행-멱등성.md) | 파라미터 설계(runDate / requestedAt) + upsert writer + dedupKey | 같은 달 다시 집계: 거절·FAILED → 몇 번을 돌려도 줄 1개, 같은 값 |
+| 08 | [감사 로그: 롤백과 커밋 실패](docs/troubleshooting/08-감사-로그-롤백과-커밋-실패.md) | REQUIRES_NEW 저장 + 트랜잭션 바깥 aspect + afterCompletion | 실패 시도 기록 0건 → 1건, 커밋 충돌 승인: 거짓 성공 → 실패로 기록 |
 
 ## 프로젝트 구조
 
@@ -102,6 +110,8 @@ src/main/java/com/example/purchase
 ├── inventory/   품목별 재고, 재고 이력, 출고 (비관적 락)
 ├── stats/       월별 구매 통계, Spring Batch job(nightlyJob, monthlyStatJob), 스케줄러
 ├── notification/ 알림, 결재 지연 알림
+├── audit/       @Audited, AuditAspect, 감사 로그·에러 로그 관리자 화면
+├── errorlog/    처리 못 한 예외 저장
 ├── code/        공통코드 그룹·코드 (품목 분류, 단위 등)
 └── home/        대시보드
 src/main/resources/templates

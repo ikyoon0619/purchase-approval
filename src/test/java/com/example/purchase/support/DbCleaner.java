@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public final class DbCleaner {
 
     private static final String[] TABLES = {
-            "notification", "monthly_purchase_stat",
+            "audit_log", "error_log", "notification", "monthly_purchase_stat",
             "inventory_history", "inventory", "purchase_order_item", "purchase_order",
             "approval_line", "attachment", "purchase_request_item", "purchase_request",
             "item", "vendor", "member", "position"};
