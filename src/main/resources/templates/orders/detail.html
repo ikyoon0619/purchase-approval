@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>발주서</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1>발주서 <code th:text="${o.orderNo}">PO-202611-0001</code>
+            <span th:class="'status ' + ${o.status.css}" th:text="${o.status.label}">발주</span></h1>
+        <a class="btn secondary" th:href="@{/orders(tab=${o.receivable() ? 'ordered' : 'received'})}">목록</a>
+    </div>
+
+    <section class="card">
+        <dl class="info">
+            <dt>요청서</dt><dd><a class="link" th:href="@{/requests/{id}(id=${o.requestId})}"
+                                  th:text="${o.requestNo} + ' ' + ${o.title}">PR-202611-0001 노트북</a></dd>
+            <dt>기안자</dt><dd th:text="${o.requesterName} + ' (' + ${o.departmentName} + ')'">김개발 (개발팀)</dd>
+            <dt>거래처</dt><dd th:text="${o.vendorName} + ' · ' + ${o.vendorBizNo}">(주)오피스몰</dd>
+            <dt>발주</dt><dd th:text="${#temporals.format(o.orderedAt, 'yyyy-MM-dd HH:mm')} + ' · ' + ${o.orderedBy}">2026-11-23 · buyer</dd>
+            <dt>입고</dt><dd th:text="${o.receivedAt != null ? #temporals.format(o.receivedAt, 'yyyy-MM-dd HH:mm') : '-'}">-</dd>
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2>품목과 입고 수량</h2>
+        <p class="muted" th:if="${o.receivable()}">실제로 들어온 수량을 적어 주세요. 덜 들어왔으면 들어온 만큼만, 안 들어왔으면 0.</p>
+        <form th:action="@{/orders/{id}/receive(id=${o.id})}" method="post"
+              onsubmit="return confirm('입고 처리하면 재고가 늘어나고 되돌릴 수 없습니다. 진행할까요?');">
+            <table class="table">
+                <thead><tr><th>#</th><th>코드</th><th>품목</th><th class="num">단가</th><th class="num">발주 수량</th><th class="num">입고 수량</th></tr></thead>
+                <tbody>
+                <tr th:each="l : ${o.lines}">
+                    <td th:text="${l.lineNo}">1</td>
+                    <td><code th:text="${l.itemCode}">IT-0001</code></td>
+                    <td><a class="link" th:href="@{/inventory/{id}/history(id=${l.itemId})}" th:text="${l.itemName}">노트북</a></td>
+                    <td class="num" th:text="${#numbers.formatInteger(l.unitPrice, 1, 'COMMA')}">1,650,000</td>
+                    <td class="num" th:text="${l.quantity}">2</td>
+                    <td class="num">
+                        <input th:if="${o.receivable()}" type="number" class="narrow qty" min="0" th:max="${l.quantity}"
+                               th:name="'qty_' + ${l.id}" th:value="${l.quantity}">
+                        <span th:unless="${o.receivable()}" th:text="${l.receivedQuantity}"
+                              th:classappend="${l.receivedQuantity < l.quantity} ? 'short'">2</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="actions" th:if="${o.receivable()}">
+                <button type="submit" class="btn">입고 처리</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

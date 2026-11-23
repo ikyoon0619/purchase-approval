@@ -52,6 +52,12 @@ docker compose up -d              # MySQL 실행
 - 결재함: 결재 대기 / 내가 처리한 문서 / 진행 중 문서. 왼쪽 메뉴에 대기 건수가 붙습니다.
 - 회수는 첫 결재 전에만, 반려는 의견 필수, 반려된 문서는 "복사해서 다시 작성".
 - 같은 문서를 동시에 처리하면 한 건만 반영됩니다 (트러블슈팅 04).
+
+## 발주·재고
+
+- 구매팀이 최종 승인된 요청서로 발주서(`PO-yyyyMM-0001`)를 만들고, 물건이 오면 줄마다 실제 입고 수량을 적어 입고 처리합니다.
+- 입고하면 품목별 재고가 늘고 이력(처리 후 수량, 관련 발주, 처리자)이 남습니다. 출고는 재고보다 많이 할 수 없습니다.
+- 재고 행은 `SELECT … FOR UPDATE`로 잠근 뒤 바꿉니다. 여러 품목은 품목 id 순서로 잠가 데드락을 피합니다 (트러블슈팅 05).
 - 샘플: `dev1` 상신 → `devlead` 승인 → `bizhead` 승인. 660만 원 문서는 `buylead`까지. 반려 예시는 `sales1`.
 
 ## 트러블슈팅 (요약)
@@ -62,6 +68,7 @@ docker compose up -d              # MySQL 실행
 | 02 | [컬렉션 fetch join + 페이징](docs/troubleshooting/02-공통코드-페이징-컬렉션-fetch-join.md) | batch fetch size + 오류로 막기 | 읽은 엔티티 180개 → 60개, 쿼리 12번 → 3번 |
 | 03 | [OSIV 끄고 LazyInitializationException](docs/troubleshooting/03-open-in-view-끄고-LazyInitializationException.md) | fetch join + 화면에는 DTO | 검색할 때만 나던 500 → 200 |
 | 04 | [중간 결재는 version이 안 올라가는 문제](docs/troubleshooting/04-중간-결재는-version이-안-올라가는-문제.md) | 루트에 `OPTIMISTIC_FORCE_INCREMENT` | 회수·승인 동시 처리: 둘 다 성공(깨진 상태) → 하나만 성공 |
+| 05 | [동시 입고 재고 유실](docs/troubleshooting/05-동시-입고-재고-유실.md) | `SELECT … FOR UPDATE` + 잠금 순서 고정 | 동시 입고 5+3: 3개(유실) → 10명 동시 +1: 항상 10개 |
 
 ## 프로젝트 구조
 
@@ -75,6 +82,8 @@ src/main/java/com/example/purchase
 ├── master/      품목, 거래처 (기준정보)
 ├── request/     구매요청서 작성·임시저장·수정·삭제, 첨부파일, 내 요청 목록, 결재선(ApprovalLine)
 ├── approval/    결재선 자동 생성, 상신·회수·승인·반려, 결재함
+├── order/       발주서, 입고 처리
+├── inventory/   품목별 재고, 재고 이력, 출고 (비관적 락)
 ├── code/        공통코드 그룹·코드 (품목 분류, 단위 등)
 └── home/        대시보드
 src/main/resources/templates

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>재고 현황</title></head>
+<body>
+<main layout:fragment="content">
+    <h1>재고 현황</h1>
+    <form class="card search" th:action="@{/inventory}" method="get">
+        <input type="text" name="keyword" placeholder="품목명 또는 코드" th:value="${keyword}">
+        <label class="check"><input type="checkbox" name="onlyInStock" value="true" th:checked="${onlyInStock}"> 재고 있는 품목만</label>
+        <button type="submit" class="btn secondary">검색</button>
+    </form>
+    <section class="card">
+        <p class="muted">총 <strong th:text="${page.totalElements}">0</strong>개 품목</p>
+        <table class="table">
+            <thead><tr><th>코드</th><th>품목</th><th>분류</th><th class="num">현재 재고</th><th>단위</th><th>마지막 변경</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="s : ${page.content}">
+                <td><code th:text="${s.itemCode}">IT-0001</code></td>
+                <td th:text="${s.itemName}">노트북</td>
+                <td th:text="${categories.getOrDefault(s.categoryCode, s.categoryCode)}">IT기기</td>
+                <td class="num"><strong th:text="${#numbers.formatInteger(s.quantity, 1, 'COMMA')}" th:classappend="${s.quantity == 0} ? 'muted'">12</strong></td>
+                <td th:text="${units.getOrDefault(s.unitCode, s.unitCode)}">개</td>
+                <td class="muted nowrap" th:text="${#temporals.format(s.updatedAt, 'yyyy-MM-dd HH:mm')}">2026-11-23</td>
+                <td><a class="link" th:href="@{/inventory/{id}/history(id=${s.itemId})}">이력·출고</a></td>
+            </tr>
+            <tr th:if="${page.content.isEmpty()}"><td colspan="7" class="muted">품목이 없습니다.</td></tr>
+            </tbody>
+        </table>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>

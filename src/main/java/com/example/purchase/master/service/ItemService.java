@@ -20,6 +20,7 @@ import java.util.List;
 public class ItemService {
 
     private final ItemRepository itemRepository;
+    private final com.example.purchase.inventory.service.InventoryService inventoryService;
 
     /** 빈 문자열("")은 "조건 없음"으로 바꾼다. 안 바꾸면 category = '' 조건이 걸려 아무것도 안 나온다 */
     public Page<Item> search(String keyword, String category, Pageable pageable) {
@@ -40,7 +41,9 @@ public class ItemService {
             throw new BusinessException(ErrorCode.DUPLICATE_ITEM_CODE);
         }
         Item item = new Item(form.getCode(), form.getName(), form.getCategoryCode(), form.getUnitCode(), form.getStandardPrice());
-        return itemRepository.save(item).getId();
+        itemRepository.save(item);
+        inventoryService.createFor(item); // 재고 행(0개)을 같이 만든다
+        return item.getId();
     }
 
     @Transactional
