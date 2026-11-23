@@ -27,3 +27,46 @@ jobs:
         with:
           name: test-report
           path: build/reports/tests/test
+
+  # 운영과 같은 방식으로 띄워 본다: Docker 이미지 + 진짜 MySQL 8 + Flyway + ddl-auto=validate
+  # 테스트(H2)는 JPA가 테이블을 만들어서, "엔티티는 바꿨는데 마이그레이션 SQL을 안 만든" 실수를 못 잡는다. 여기서 잡는다.
+  docker-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare .env
+        run: |
+          cat > .env <<'ENV'
+          DB_PASSWORD=ci-db-pass
+          DB_ROOT_PASSWORD=ci-root-pass
+          ADMIN_INITIAL_PASSWORD=ci-admin-pass
+          APP_IMAGE=purchase-approval:ci
+          ENV
+
+      - name: Build image
+        run: docker compose -f docker-compose.prod.yml build app
+
+      - name: Start MySQL + app
+        run: docker compose -f docker-compose.prod.yml up -d
+
+      - name: Wait for app and log in as admin
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost/login && break
+            sleep 3
+          done
+          ./deploy/smoke-test.sh http://localhost admin ci-admin-pass
+
+      - name: Restart app (Flyway validate + existing data)
+        run: |
+          docker compose -f docker-compose.prod.yml restart app
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost/login && break
+            sleep 3
+          done
+          ./deploy/smoke-test.sh http://localhost admin ci-admin-pass
+
+      - name: Logs
+        if: always()
+        run: docker compose -f docker-compose.prod.yml logs app | tail -n 200

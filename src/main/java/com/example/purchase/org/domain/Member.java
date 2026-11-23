@@ -41,7 +41,8 @@ public class Member extends BaseEntity {
     private Position position;
 
     @Enumerated(EnumType.STRING) // ORDINAL(숫자)로 두면 enum 순서를 바꾸는 순간 기존 데이터 뜻이 바뀐다
-    @Column(nullable = false, length = 20)
+    // MySQL enum(...)이나 CHECK 없이 그냥 varchar: 상수를 추가해도 DB를 안 바꿔도 된다 (troubleshooting 09)
+    @Column(nullable = false, length = 20, columnDefinition = "varchar(20)")
     private Role role;
 
     @Column(nullable = false)

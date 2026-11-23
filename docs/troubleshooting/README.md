@@ -39,3 +39,4 @@
 | 06 | [트랜잭션 안에서 외부 API를 부르면 커넥션 풀이 바닥나는 문제](06-트랜잭션-안-외부-API-커넥션-풀.md) | 8단계 | @Transactional 범위, HikariCP, 타임아웃, 서비스 키 인코딩 |
 | 07 | [같은 달 통계를 다시 집계하면: "이미 완료" 거절, 그다음엔 UNIQUE 위반](07-배치-재실행-멱등성.md) | 9단계 | Spring Batch, JobParameters, 멱등성, upsert, tasklet 트랜잭션 |
 | 08 | [감사 로그: 실패 기록은 롤백으로 사라지고, 커밋에 실패한 승인은 "성공"으로 남았다](08-감사-로그-롤백과-커밋-실패.md) | 10단계 | AOP, @Order, REQUIRES_NEW, afterCompletion, self-invocation |
+| 09 | [운영 스키마: validate는 통과했는데 enum 값 저장 실패, 고친 V1은 checksum mismatch](09-운영-스키마-Flyway-enum-컬럼.md) | 11단계 | Flyway, ddl-auto validate, MySQL enum, CHECK, Docker |

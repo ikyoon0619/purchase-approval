@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -31,12 +31,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * local 프로필에서 샘플 조직도와 샘플 계정을 넣는다. 이미 있으면 건너뛴다.
+ * 샘플 조직도·계정·문서를 넣는다 (app.sample-data=true일 때: local, 그리고 공개 데모 서버). 이미 있으면 건너뛴다.
  * 샘플 계정 비밀번호는 모두 {@value #SAMPLE_PASSWORD} (README에도 적어 둠, 로컬 전용)
  */
 @Slf4j
 @Component
-@Profile("local")
+@ConditionalOnProperty(name = "app.sample-data", havingValue = "true")   // local: 항상, prod: 데모 서버만 (SAMPLE_DATA=true)
 @Order(2)
 @RequiredArgsConstructor
 public class LocalDataInitializer implements ApplicationRunner {
