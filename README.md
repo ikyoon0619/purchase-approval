@@ -8,3 +8,11 @@
 ## 기술 스택 (예정)
 
 Java 17 · Spring Boot 3.3 · Spring Data JPA · QueryDSL · Thymeleaf · Spring Security · MySQL 8 · Spring Batch · JUnit 5 · Docker · GitHub Actions · AWS EC2
+
+## 문서
+
+- [요구사항 정의서](docs/01-요구사항-정의서.md)
+- [ERD](docs/02-ERD.md)
+- [화면 목록](docs/03-화면-목록.md)
+- [결재 상태도](docs/04-결재-상태도.md)
+- [트러블슈팅 기록](docs/troubleshooting/README.md)
