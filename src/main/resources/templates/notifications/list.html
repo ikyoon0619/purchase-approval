@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>알림</title></head>
+<body>
+<main layout:fragment="content">
+    <div class="page-head">
+        <h1>알림</h1>
+        <form th:action="@{/notifications/read-all}" method="post" class="inline" th:if="${unreadNotificationCount > 0}">
+            <button type="submit" class="btn secondary">모두 읽음</button>
+        </form>
+    </div>
+    <section class="card">
+        <ul class="notice-list" th:unless="${page.content.isEmpty()}">
+            <li th:each="n : ${page.content}" th:classappend="${!n.read} ? 'unread'">
+                <form th:action="@{/notifications/{id}/open(id=${n.id})}" method="post" class="inline">
+                    <button type="submit" class="btn-link msg" th:text="${n.message}">[PR-202611-0001] 결재 대기</button>
+                </form>
+                <span class="muted small nowrap">
+                    <span th:text="${n.read} ? '읽음' : '안 읽음'">안 읽음</span> ·
+                    <span th:text="${#temporals.format(n.createdAt, 'yyyy-MM-dd HH:mm')}">2026-11-23 02:00</span>
+                </span>
+            </li>
+        </ul>
+        <p class="muted" th:if="${page.content.isEmpty()}">알림이 없습니다.</p>
+        <nav th:replace="~{fragments/pagination :: pagination(${page})}"></nav>
+    </section>
+</main>
+</body>
+</html>

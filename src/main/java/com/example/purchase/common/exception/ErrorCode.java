@@ -61,7 +61,12 @@ public enum ErrorCode {
 
     INVENTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "S001", "재고 정보를 찾을 수 없습니다."),
     INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "S002", "재고가 부족합니다."),
-    STOCK_BUSY(HttpStatus.CONFLICT, "S003", "다른 사람이 같은 품목 재고를 처리하고 있습니다. 잠시 후 다시 시도해 주세요.");
+    STOCK_BUSY(HttpStatus.CONFLICT, "S003", "다른 사람이 같은 품목 재고를 처리하고 있습니다. 잠시 후 다시 시도해 주세요."),
+
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "N001", "알림을 찾을 수 없습니다."),
+    BATCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "B001", "집계를 끝내지 못했습니다. 잠시 후 다시 시도해 주세요."),
+    BATCH_RUNNING(HttpStatus.CONFLICT, "B002", "같은 집계가 이미 돌고 있습니다. 끝난 뒤 다시 시도해 주세요."),
+    INVALID_MONTH(HttpStatus.BAD_REQUEST, "B003", "집계할 달을 다시 골라 주세요. 미래의 달은 집계할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

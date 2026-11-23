@@ -9,28 +9,70 @@
 <body>
 <main layout:fragment="content">
     <h1>대시보드</h1>
-    <p class="muted"><span sec:authentication="principal.name">홍길동</span>님, 반갑습니다.
-        결재 대기 건수와 구매 통계는 9단계에서 이 화면에 들어옵니다.</p>
+    <p class="muted"><span sec:authentication="principal.name">홍길동</span>님, 반갑습니다.</p>
+
+    <div class="kpis">
+        <a class="kpi" th:href="@{/approvals}">
+            <div class="label">내 결재 대기</div>
+            <div class="value"><span th:text="${pendingApprovalCount}">0</span>건</div>
+        </a>
+        <a class="kpi" th:href="@{/requests(status='IN_APPROVAL')}">
+            <div class="label">내 요청 결재중</div>
+            <div class="value"><span th:text="${d.myInApproval}">0</span>건</div>
+        </a>
+        <a class="kpi" th:href="@{/requests(status='DRAFT')}">
+            <div class="label">내 임시저장</div>
+            <div class="value"><span th:text="${d.myDrafts}">0</span>건</div>
+        </a>
+        <div class="kpi">
+            <div class="label">이번 달 우리 부서 승인 금액</div>
+            <div class="value"><span th:text="${#numbers.formatInteger(d.myDeptThisMonth, 1, 'COMMA')}">0</span>원</div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <section class="card">
+            <h2>우리 부서 최근 6개월 <span class="muted small" sec:authentication="principal.departmentName">개발팀</span></h2>
+            <ul class="bars">
+                <li th:each="b : ${d.trend}">
+                    <span th:text="${b.label}">11월</span>
+                    <span class="track"><span class="fill" th:classappend="${b.percent == 0} ? 'zero'"
+                                              th:style="'width:' + ${b.percent} + '%'"></span></span>
+                    <span class="amount" th:text="${#numbers.formatInteger(b.amount, 1, 'COMMA')} + '원'">0원</span>
+                </li>
+            </ul>
+        </section>
+
+        <section class="card">
+            <h2>이번 달 부서별 승인 금액</h2>
+            <ul class="bars" th:unless="${d.byDepartment.isEmpty()}">
+                <li th:each="b : ${d.byDepartment}">
+                    <span th:text="${b.label}">개발팀</span>
+                    <span class="track"><span class="fill" th:style="'width:' + ${b.percent} + '%'"></span></span>
+                    <span class="amount" th:text="${#numbers.formatInteger(b.amount, 1, 'COMMA')} + '원'">0원</span>
+                </li>
+            </ul>
+            <p class="muted" th:if="${d.byDepartment.isEmpty()}">이번 달 승인된 요청이 아직 없거나, 아직 집계 전입니다.</p>
+        </section>
+    </div>
+
+    <p class="muted small">
+        통계는 매일 02:00에 배치로 집계합니다.
+        <span th:if="${d.lastAggregatedAt != null}">마지막 집계: <span th:text="${#temporals.format(d.lastAggregatedAt, 'yyyy-MM-dd HH:mm')}">2026-11-23 02:00</span></span>
+        <span th:if="${d.lastAggregatedAt == null}">아직 한 번도 집계하지 않았습니다.</span>
+    </p>
 
     <section class="card">
-        <h2>조직도 <span class="badge" th:text="${departments.size()}">0</span></h2>
-        <table class="table">
-            <thead>
-            <tr><th>코드</th><th>부서명</th><th>상위 부서</th></tr>
-            </thead>
-            <tbody>
-            <tr th:each="d : ${departments}">
-                <td th:text="${d.code}">D100</td>
-                <td th:text="${d.name}">경영지원본부</td>
-                <td th:text="${d.parent != null ? d.parent.name : '-'}">-</td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
-
-    <section class="card">
-        <h2>직급</h2>
-        <p><span class="chip" th:each="p : ${positions}" th:text="${p.name}">사원</span></p>
+        <h2>최근 알림 <a class="link small" th:href="@{/notifications}">전체 보기</a></h2>
+        <ul class="notice-list" th:unless="${d.notifications.isEmpty()}">
+            <li th:each="n : ${d.notifications}" th:classappend="${!n.read} ? 'unread'">
+                <form th:action="@{/notifications/{id}/open(id=${n.id})}" method="post" class="inline">
+                    <button type="submit" class="btn-link msg" th:text="${n.message}">[PR-202611-0001] 결재 대기</button>
+                </form>
+                <span class="muted small nowrap" th:text="${#temporals.format(n.createdAt, 'MM-dd HH:mm')}">11-23 02:00</span>
+            </li>
+        </ul>
+        <p class="muted" th:if="${d.notifications.isEmpty()}">알림이 없습니다.</p>
     </section>
 </main>
 </body>

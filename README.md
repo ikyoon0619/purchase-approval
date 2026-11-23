@@ -66,6 +66,14 @@ docker compose up -d              # MySQL 실행
 - 재고 행은 `SELECT … FOR UPDATE`로 잠근 뒤 바꿉니다. 여러 품목은 품목 id 순서로 잠가 데드락을 피합니다 (트러블슈팅 05).
 - 샘플: `dev1` 상신 → `devlead` 승인 → `bizhead` 승인. 660만 원 문서는 `buylead`까지. 반려 예시는 `sales1`.
 
+## 통계·대시보드·알림 (Spring Batch)
+
+- 매일 02:00 `nightlyJob`: ① 어제가 속한 달의 부서별 승인 건수·금액 집계 → ② 3일 넘게 결재를 기다린 결재자에게 알림 → ③ 거래처 사업자 상태 갱신(국세청 API).
+- 첫 화면(대시보드): 내 결재 대기·결재중·임시저장, 이번 달 우리 부서 승인 금액, 최근 6개월 막대, 부서별 막대, 최근 알림.
+- 구매 통계(`/stats/monthly`, 부서장·구매팀·관리자): 부서 × 월 표. 구매팀·관리자는 한 달을 골라 [다시 집계].
+- 다시 집계해도 결과가 같습니다(upsert). 야간 배치는 하루 한 번만 돕니다(`runDate` 파라미터) (트러블슈팅 07).
+- local에서는 시작할 때 통계가 비어 있으면 최근 6개월을 한 번 집계합니다. 샘플: `devlead` 로그인 → 5일째 대기 문서 알림.
+
 ## 트러블슈팅 (요약)
 
 | # | 문제 | 해결 | 결과 |
@@ -76,6 +84,7 @@ docker compose up -d              # MySQL 실행
 | 04 | [중간 결재는 version이 안 올라가는 문제](docs/troubleshooting/04-중간-결재는-version이-안-올라가는-문제.md) | 루트에 `OPTIMISTIC_FORCE_INCREMENT` | 회수·승인 동시 처리: 둘 다 성공(깨진 상태) → 하나만 성공 |
 | 05 | [동시 입고 재고 유실](docs/troubleshooting/05-동시-입고-재고-유실.md) | `SELECT … FOR UPDATE` + 잠금 순서 고정 | 동시 입고 5+3: 3개(유실) → 10명 동시 +1: 항상 10개 |
 | 06 | [트랜잭션 안 외부 API 호출](docs/troubleshooting/06-트랜잭션-안-외부-API-커넥션-풀.md) | 읽기·쓰기 트랜잭션을 나누고 API는 그 밖에서 + 타임아웃 | 풀 2개에서 느린 API 2건 대기 중 다른 조회: 실패 → 즉시 성공 |
+| 07 | [배치 재실행: 이미 완료 거절, UNIQUE 위반](docs/troubleshooting/07-배치-재실행-멱등성.md) | 파라미터 설계(runDate / requestedAt) + upsert writer + dedupKey | 같은 달 다시 집계: 거절·FAILED → 몇 번을 돌려도 줄 1개, 같은 값 |
 
 ## 프로젝트 구조
 
@@ -91,6 +100,8 @@ src/main/java/com/example/purchase
 ├── approval/    결재선 자동 생성, 상신·회수·승인·반려, 결재함
 ├── order/       발주서, 입고 처리
 ├── inventory/   품목별 재고, 재고 이력, 출고 (비관적 락)
+├── stats/       월별 구매 통계, Spring Batch job(nightlyJob, monthlyStatJob), 스케줄러
+├── notification/ 알림, 결재 지연 알림
 ├── code/        공통코드 그룹·코드 (품목 분류, 단위 등)
 └── home/        대시보드
 src/main/resources/templates

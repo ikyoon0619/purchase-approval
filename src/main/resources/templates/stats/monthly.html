@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head><title>구매 통계</title></head>
+<body>
+<main layout:fragment="content">
+    <h1>월별 구매 통계</h1>
+    <p class="muted">부서별로 그 달에 <strong>최종 승인</strong>된 요청서의 건수와 금액입니다. 매일 02:00 배치가 집계합니다.
+        <span th:if="${lastAggregatedAt != null}">마지막 집계: <span th:text="${#temporals.format(lastAggregatedAt, 'yyyy-MM-dd HH:mm:ss')}">-</span></span></p>
+
+    <div class="card search">
+        <form th:action="@{/stats/monthly}" method="get" class="inline">
+            <select name="year">
+                <option th:each="y : ${years}" th:value="${y}" th:text="${y} + '년'" th:selected="${y == table.year}">2026년</option>
+            </select>
+            <button type="submit" class="btn secondary">보기</button>
+        </form>
+        <form th:if="${canRerun}" th:action="@{/stats/monthly/rerun}" method="post" class="inline">
+            <input type="month" name="month" th:value="${defaultMonth}" required>
+            <button type="submit" class="btn">다시 집계</button>
+            <span class="muted small">여러 번 눌러도 결과는 같습니다 (기존 줄을 고쳐 씀)</span>
+        </form>
+    </div>
+
+    <section class="card table-scroll">
+        <table class="table stats">
+            <thead>
+            <tr>
+                <th>부서</th>
+                <th class="num" th:each="m : ${months}" th:text="${m} + '월'">1월</th>
+                <th class="num">합계</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${table.rows}">
+                <td class="nowrap" th:text="${r.departmentName}">개발팀</td>
+                <td class="num" th:each="c : ${r.cells}"
+                    th:title="${c.count} + '건'"
+                    th:text="${c.count == 0} ? '-' : ${#numbers.formatInteger(c.amount, 1, 'COMMA')}">-</td>
+                <td class="num"><strong th:text="${#numbers.formatInteger(r.total.amount, 1, 'COMMA')}">0</strong>
+                    <div class="muted small" th:text="${r.total.count} + '건'">0건</div></td>
+            </tr>
+            <tr th:if="${table.rows.isEmpty()}"><td colspan="14" class="muted">이 해에 집계된 통계가 없습니다.</td></tr>
+            </tbody>
+            <tfoot th:unless="${table.rows.isEmpty()}">
+            <tr>
+                <td>전체</td>
+                <td class="num" th:each="c : ${table.monthTotals}"
+                    th:text="${c.count == 0} ? '-' : ${#numbers.formatInteger(c.amount, 1, 'COMMA')}">-</td>
+                <td class="num" th:text="${#numbers.formatInteger(table.grandTotal.amount, 1, 'COMMA')}">0</td>
+            </tr>
+            </tfoot>
+        </table>
+        <p class="muted small">금액 단위: 원. 칸에 마우스를 올리면 건수가 보입니다.</p>
+    </section>
+</main>
+</body>
+</html>

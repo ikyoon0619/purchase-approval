@@ -147,6 +147,7 @@ erDiagram
 | status | VARCHAR(20) | `WAITING`, `PENDING`, `APPROVED`, `REJECTED`, `CANCELED` |
 | comment | VARCHAR(500) | 결재 의견 |
 | processed_at | DATETIME | 처리 시각 |
+| pending_at | DATETIME | 결재 차례가 된 시각 (결재 지연 알림 기준, 9단계 추가) |
 
 ### 발주와 재고
 
@@ -188,8 +189,9 @@ erDiagram
 |---|---|---|
 | menu | id, name, url, parent_id, sort_order | 왼쪽 메뉴 |
 | menu_role | menu_id, role | 메뉴별 볼 수 있는 역할 |
-| monthly_purchase_stat | id, year_month, department_id, request_count, total_amount, UNIQUE(year_month, department_id) | 배치 집계 결과 |
-| notification | id, member_id, message, link_url, read_yn | 결재 지연 알림 |
+| monthly_purchase_stat | id, stat_month, department_id, request_count, total_amount, aggregated_at, UNIQUE(stat_month, department_id) | 배치 집계 결과. `year_month`는 MySQL 예약어라 `stat_month`로 |
+| notification | id, member_id, message, link_url, dedup_key UNIQUE, read_at | 결재 지연 알림. dedup_key로 같은 일에 한 번만 |
+| BATCH_* | Spring Batch가 만드는 실행 이력 테이블 | 어떤 job이 어떤 파라미터로 언제 돌았고 성공했는지 |
 | audit_log | id, member_id, action, target_type, target_id, detail, ip, created_at | 누가 무엇을 바꿨는지 |
 | error_log | id, request_uri, exception_class, message, created_at | 처리 못 한 예외 |
 

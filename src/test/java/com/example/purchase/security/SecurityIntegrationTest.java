@@ -123,9 +123,9 @@ class SecurityIntegrationTest {
 
         mockMvc.perform(get("/stats/monthly").with(user(new LoginUser(employee))))
                 .andExpect(status().isForbidden());
-        // 관리자는 권한 검사를 통과한다 (화면은 아직 없어서 404)
+        // 관리자는 권한 검사를 통과한다 (9단계에서 통계 화면이 생겼다)
         mockMvc.perform(get("/stats/monthly").with(user(new LoginUser(admin))))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
     }
 
     @Test

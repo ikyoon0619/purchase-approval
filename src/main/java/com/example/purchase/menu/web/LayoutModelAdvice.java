@@ -2,6 +2,7 @@ package com.example.purchase.menu.web;
 
 import com.example.purchase.approval.service.ApprovalService;
 import com.example.purchase.menu.service.MenuService;
+import com.example.purchase.notification.service.NotificationService;
 import com.example.purchase.menu.service.MenuService.MenuItem;
 import com.example.purchase.security.LoginUser;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,13 +13,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.util.List;
 
-/** 모든 화면의 공통 레이아웃에 필요한 값(왼쪽 메뉴, 현재 주소, 결재 대기 건수)을 모델에 넣는다 */
+/** 모든 화면의 공통 레이아웃에 필요한 값(왼쪽 메뉴, 현재 주소, 결재 대기 건수, 안 읽은 알림 수)을 모델에 넣는다 */
 @ControllerAdvice
 @RequiredArgsConstructor
 public class LayoutModelAdvice {
 
     private final MenuService menuService;
     private final ApprovalService approvalService;
+    private final NotificationService notificationService;
 
     @ModelAttribute("menus")
     public List<MenuItem> menus(@AuthenticationPrincipal LoginUser user) {
@@ -34,5 +36,11 @@ public class LayoutModelAdvice {
     @ModelAttribute("pendingApprovalCount")
     public long pendingApprovalCount(@AuthenticationPrincipal LoginUser user) {
         return user == null ? 0 : approvalService.pendingCount(user.getId());
+    }
+
+    /** 오른쪽 위 "알림 (3)". (member_id, read_at) 인덱스로 count 1번 */
+    @ModelAttribute("unreadNotificationCount")
+    public long unreadNotificationCount(@AuthenticationPrincipal LoginUser user) {
+        return user == null ? 0 : notificationService.unreadCount(user.getId());
     }
 }
