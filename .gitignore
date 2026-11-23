@@ -15,6 +15,7 @@ out/
 # Env / secrets
 .env
 *.env.local
+.env.prod
 
 # Uploaded files (local)
 uploads/
