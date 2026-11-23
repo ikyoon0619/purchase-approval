@@ -1,5 +1,7 @@
 package com.example.purchase.master.service;
 
+import com.example.purchase.audit.AuditAction;
+import com.example.purchase.audit.Audited;
 import com.example.purchase.common.exception.BusinessException;
 import com.example.purchase.common.exception.ErrorCode;
 import com.example.purchase.master.domain.Vendor;
@@ -49,6 +51,7 @@ public class VendorService {
     }
 
     @Transactional
+    @Audited(action = AuditAction.CREATE, target = "거래처", id = "#result")
     public Long create(VendorForm form) {
         if (vendorRepository.existsByBizNo(form.bizNoDigits())) {
             throw new BusinessException(ErrorCode.DUPLICATE_BIZ_NO);
@@ -59,6 +62,7 @@ public class VendorService {
     }
 
     @Transactional
+    @Audited(action = AuditAction.UPDATE, target = "거래처", id = "#id")
     public void update(Long id, VendorForm form) {
         Vendor vendor = get(id);
         vendor.update(form.getName(), form.getCeoName(), form.isUsed());

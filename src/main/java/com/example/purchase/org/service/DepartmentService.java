@@ -1,5 +1,7 @@
 package com.example.purchase.org.service;
 
+import com.example.purchase.audit.AuditAction;
+import com.example.purchase.audit.Audited;
 import com.example.purchase.common.exception.BusinessException;
 import com.example.purchase.common.exception.ErrorCode;
 import com.example.purchase.org.domain.Department;
@@ -43,6 +45,7 @@ public class DepartmentService {
     }
 
     @Transactional
+    @Audited(action = AuditAction.CREATE, target = "부서", id = "#result")
     public Long create(DepartmentForm form) {
         if (departmentRepository.findByCode(form.getCode()).isPresent()) {
             throw new BusinessException(ErrorCode.DUPLICATE_DEPARTMENT_CODE);
@@ -59,6 +62,7 @@ public class DepartmentService {
      * 커밋할 때 JPA가 바뀐 것을 찾아 UPDATE를 날린다 (변경 감지, dirty checking).
      */
     @Transactional
+    @Audited(action = AuditAction.UPDATE, target = "부서", id = "#id")
     public void update(Long id, DepartmentForm form) {
         Department department = get(id);
         try {

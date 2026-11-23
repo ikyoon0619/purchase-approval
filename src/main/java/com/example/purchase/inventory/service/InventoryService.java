@@ -1,5 +1,7 @@
 package com.example.purchase.inventory.service;
 
+import com.example.purchase.audit.AuditAction;
+import com.example.purchase.audit.Audited;
 import com.example.purchase.common.exception.BusinessException;
 import com.example.purchase.common.exception.ErrorCode;
 import com.example.purchase.inventory.domain.ChangeType;
@@ -39,6 +41,7 @@ public class InventoryService {
     }
 
     /** 출고. 재고보다 많이 빼면 INSUFFICIENT_STOCK (재고는 음수가 될 수 없다) */
+    @Audited(action = AuditAction.SHIP, target = "재고", id = "#itemId")
     public int ship(Long itemId, int qty, String memo) {
         Inventory inventory = lock(itemId);
         inventory.decrease(qty);

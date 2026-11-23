@@ -1,5 +1,7 @@
 package com.example.purchase.stats.batch;
 
+import com.example.purchase.audit.AuditAction;
+import com.example.purchase.audit.Audited;
 import com.example.purchase.common.exception.BusinessException;
 import com.example.purchase.common.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +55,7 @@ public class BatchRunner {
     }
 
     /** 통계 화면에서 한 달을 다시 집계 */
+    @Audited(action = AuditAction.BATCH, target = "월별 통계", id = "#month")
     public JobExecution runMonthlyStat(YearMonth month) {
         if (month.isAfter(YearMonth.now())) {
             throw new BusinessException(ErrorCode.INVALID_MONTH);

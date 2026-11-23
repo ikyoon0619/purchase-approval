@@ -1,6 +1,7 @@
 package com.example.purchase.stats.batch;
 
 import com.example.purchase.common.exception.BusinessException;
+import com.example.purchase.errorlog.service.ErrorLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,14 +29,19 @@ public class NightlyBatchScheduler {
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
 
     private final BatchRunner batchRunner;
+    private final ErrorLogService errorLogService;
 
     @Scheduled(cron = "${app.batch.nightly-cron}", zone = "Asia/Seoul")
     public void runNightly() {
         try {
             batchRunner.runNightly(LocalDate.now(SEOUL));
         } catch (BusinessException e) {
-            // 스케줄러 스레드에서 던진 예외는 아무도 받지 않는다. 로그로 남긴다 (10단계에서 에러 로그 테이블로)
-            log.error("야간 배치 실행 실패: {}", e.getMessage());
+            // "이미 완료"처럼 예상한 실패: 로그만
+            log.warn("야간 배치를 실행하지 않았습니다: {}", e.getMessage());
+        } catch (RuntimeException e) {
+            // 스케줄러 스레드에서 던진 예외는 아무도 받지 않는다 → 그냥 두면 서버 로그에만 묻힌다. 관리자 화면에서 보이게 저장
+            Long id = errorLogService.record("BATCH nightlyJob", "system", e);
+            log.error("야간 배치 실행 실패 #{}", id, e);
         }
     }
 }

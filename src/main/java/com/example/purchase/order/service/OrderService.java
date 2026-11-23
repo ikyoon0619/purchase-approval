@@ -1,5 +1,7 @@
 package com.example.purchase.order.service;
 
+import com.example.purchase.audit.AuditAction;
+import com.example.purchase.audit.Audited;
 import com.example.purchase.common.exception.BusinessException;
 import com.example.purchase.common.exception.ErrorCode;
 import com.example.purchase.inventory.service.InventoryService;
@@ -31,6 +33,7 @@ public class OrderService {
     private final InventoryService inventoryService;
 
     /** 최종 승인된 요청서로 발주서를 만든다. 요청서는 ORDERED로 */
+    @Audited(action = AuditAction.ORDER, target = "발주서", id = "#result")
     public Long create(Long requestId) {
         PurchaseRequest request = requestRepository.findDetail(requestId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REQUEST_NOT_FOUND));
@@ -48,6 +51,7 @@ public class OrderService {
      * 잠그는 순서를 품목 id 순으로 고정한다: 발주 A가 (노트북→모니터), 발주 B가 (모니터→노트북) 순서로 잠그면
      * 서로 상대가 잡은 행을 기다리는 데드락이 생길 수 있다.
      */
+    @Audited(action = AuditAction.RECEIVE, target = "발주서", id = "#orderId")
     public void receive(Long orderId, Map<Long, Integer> receivedByLineId) {
         PurchaseOrder order = findDetail(orderId);
         LocalDateTime now = LocalDateTime.now();
