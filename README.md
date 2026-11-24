@@ -3,6 +3,8 @@
 직원이 구매요청서를 쓰면 팀장 → 부서장 → (500만 원 이상이면) 구매팀장 순서로 결재하고,
 승인되면 발주와 재고에 반영되는 사내 업무 시스템입니다.
 
+**데모: http://54.180.77.43** (AWS EC2 서울, Docker로 앱 + MySQL. HTTPS 없이 http로 접속)
+
 단계별로 Pull Request를 하나씩 올리며 만들었습니다 (#1 ~ #11). 만들면서 실제로 막힌 문제는 [트러블슈팅](#트러블슈팅-요약)에 남겼습니다.
 
 ## 기술 스택
@@ -47,6 +49,7 @@ docker compose up -d              # MySQL 실행
   - CI: 테스트 + **docker-smoke**(이미지 빌드 → MySQL 8과 함께 띄움 → Flyway·validate → 로그인·관리자 화면 확인 → 재시작 후 다시 확인)
   - Deploy: main 머지 → 테스트 → `ghcr.io`에 이미지 → (설정 시) SSH로 EC2에서 `deploy/deploy.sh`
 - 순서대로 따라 하는 가이드: [docs/deploy/EC2-배포.md](docs/deploy/EC2-배포.md)
+- 지금 떠 있는 서버: http://54.180.77.43 (EC2, 탄력적 IP)
 
 ## 로그인과 권한
 
