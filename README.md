@@ -49,7 +49,7 @@ docker compose up -d              # MySQL 실행
   - CI: 테스트 + **docker-smoke**(이미지 빌드 → MySQL 8과 함께 띄움 → Flyway·validate → 로그인·관리자 화면 확인 → 재시작 후 다시 확인)
   - Deploy: main 머지 → 테스트 → `ghcr.io`에 이미지 → (설정 시) SSH로 EC2에서 `deploy/deploy.sh`
 - 순서대로 따라 하는 가이드: [docs/deploy/EC2-배포.md](docs/deploy/EC2-배포.md)
-- 지금 떠 있는 서버: http://54.180.77.43 (EC2 t3.micro급, 탄력적 IP)
+- 지금 떠 있는 서버: http://54.180.77.43 (EC2, 탄력적 IP)
 
 ## 로그인과 권한
 
