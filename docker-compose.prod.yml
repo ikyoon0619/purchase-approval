@@ -2,6 +2,10 @@
 #   docker compose -f docker-compose.prod.yml pull
 #   docker compose -f docker-compose.prod.yml up -d
 # 값은 같은 폴더의 .env에서 읽는다 (.env.prod.example 참고). .env는 git에 올리지 않는다.
+# 프로젝트 이름 고정: 안 정하면 폴더 이름(purchase-approval)이 되어 로컬용 docker-compose.yml과 같아진다.
+# 그러면 볼륨 mysql-data 를 로컬 개발 DB와 같이 써 버린다 (맥에서 실제로 겪음, 트러블슈팅 09)
+name: purchase-approval-prod
+
 services:
   mysql:
     image: mysql:8.0
