@@ -83,6 +83,19 @@ Flyway는 실행한 파일의 체크섬을 `flyway_schema_history`에 저장해 
 **한 번 운영에 나간 마이그레이션 파일은 고치지 않는다.** 바꿀 게 있으면 `V2__설명.sql`을 추가한다.
 이번에는 아직 배포 전이라 DB를 지우고 다시 만들었다 (운영이었다면 `ALTER TABLE ...`을 담은 V2).
 
+## 증상 4: 맥에서 운영 compose를 띄웠더니 앱이 시작·재시작을 반복
+
+맥에서 `docker compose -f docker-compose.prod.yml up -d --build`로 운영 조합을 띄웠는데, MySQL은 Healthy인데 앱이 계속 재시작했다.
+
+원인: compose는 프로젝트 이름을 따로 안 정하면 **폴더 이름**을 쓴다. 로컬용 `docker-compose.yml`과 운영용 `docker-compose.prod.yml`이 같은 폴더라 둘 다 `purchase-approval`가 되고,
+볼륨 `mysql-data`도 똑같이 `purchase-approval_mysql-data`가 된다. 운영 MySQL이 **로컬 개발 DB를 그대로 열었고**, 그 DB에는 `ddl-auto: update`로 만든 테이블은 있지만 Flyway 기록 테이블이 없다.
+Flyway는 "비어 있지 않은데 기록이 없는 DB"에는 마이그레이션을 하지 않고 멈추므로(`baseline` 하라는 오류) 앱이 죽고, `restart: unless-stopped`로 다시 뜨기를 반복했다.
+(Flyway가 시작 전에 멈추므로 로컬 데이터는 바뀌지 않았다.)
+
+CI에서는 깨끗한 러너라 로컬 볼륨이 없어서 드러나지 않았다.
+
+해결: `docker-compose.prod.yml` 맨 위에 `name: purchase-approval-prod`. 볼륨이 `purchase-approval-prod_mysql-data`로 분리된다.
+
 ## 재발 방지: CI에서 운영과 같은 조합으로 띄운다
 
 테스트(H2)는 JPA가 테이블을 만들기 때문에 "엔티티는 바꿨는데 V2를 안 만든" 실수를 못 잡는다.
@@ -106,3 +119,4 @@ GitHub Actions `docker-smoke` job이 운영과 똑같이 띄운다:
 - 엔티티에서 만들어진 DDL은 반드시 한 번 덤프해서 눈으로 본다. 생각한 것과 다를 수 있다 (enum, CHECK).
 - 운영에 나간 마이그레이션은 불변. 수정은 새 버전으로.
 - 운영과 같은 DB·같은 방식(Docker, Flyway, validate)으로 띄우는 검사를 CI에 하나 둔다.
+- compose 파일이 여러 개면 `name:`으로 프로젝트 이름을 고정한다. 볼륨·네트워크 이름이 프로젝트 이름에서 나온다.
