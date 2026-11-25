@@ -1,16 +1,65 @@
-# 구매요청·전자결재 시스템 (purchase-approval)
+# 구매요청·전자결재 시스템
 
-직원이 구매요청서를 쓰면 팀장 → 부서장 → (500만 원 이상이면) 구매팀장 순서로 결재하고,
-승인되면 발주와 재고에 반영되는 사내 업무 시스템입니다.
+직원이 구매요청서를 올리면 팀장 → 본부장 → (500만 원 이상이면) 구매팀장 순서로 결재하고,
+최종 승인되면 발주·입고·재고까지 이어지는 사내 업무 시스템입니다. Spring Boot + JPA로 혼자 만들었습니다.
 
-**데모: http://54.180.77.43** (AWS EC2 서울, Docker로 앱 + MySQL. HTTPS 없이 http로 접속)
-체험 계정: `dev1`(직원) · `devlead`(팀장) · `bizhead`(본부장) · `buylead`(구매팀) · `admin`(관리자), 비밀번호 모두 `pass1234`. 공개 데모라 데이터는 누구나 바꿀 수 있습니다.
+[![CI](https://github.com/ikyoon0619/purchase-approval/actions/workflows/ci.yml/badge.svg)](https://github.com/ikyoon0619/purchase-approval/actions/workflows/ci.yml)
+![Java](https://img.shields.io/badge/Java-17-555?style=flat-square)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3-555?style=flat-square)
+![JPA](https://img.shields.io/badge/Spring_Data_JPA-QueryDSL-555?style=flat-square)
+![MySQL](https://img.shields.io/badge/MySQL-8-555?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-118-555?style=flat-square)
 
-단계별로 Pull Request를 하나씩 올리며 만들었습니다 (#1 ~ #11). 만들면서 실제로 막힌 문제는 [트러블슈팅](#트러블슈팅-요약)에 남겼습니다.
+| 데모 | http://54.180.77.43 (AWS EC2 서울, Docker로 앱 + MySQL, http 접속) |
+|---|---|
+| 체험 계정 | `dev1`(직원) · `devlead`(팀장) · `bizhead`(본부장) · `buylead`(구매팀) · `admin`(관리자), 비밀번호 모두 `pass1234` |
+| 문서 | [요구사항](docs/01-요구사항-정의서.md) · [ERD](docs/02-ERD.md) · [화면 목록](docs/03-화면-목록.md) · [결재 상태도](docs/04-결재-상태도.md) · [트러블슈팅](docs/troubleshooting/README.md) |
+
+공개 데모라 데이터는 누구나 바꿀 수 있습니다. 추천 순서: `dev1`로 요청서 상신 → `devlead`로 결재함에서 승인 → `buylead`로 발주·입고.
+
+## 화면
+
+| 대시보드 | 결재함 |
+|---|---|
+| ![대시보드](docs/images/dashboard.png) | ![결재함](docs/images/approval-inbox.png) |
+| **구매요청서 상세 (상신 전 결재선 미리보기)** | **재고 현황** |
+| ![구매요청서 상세](docs/images/request-detail.png) | ![재고 현황](docs/images/inventory.png) |
+
+## 이 프로젝트에서 다룬 것
+
+- **동시성**: 같은 문서를 두 사람이 동시에 처리하면 한 건만 반영(낙관적 락, `OPTIMISTIC_FORCE_INCREMENT`). 동시 입고는 `SELECT … FOR UPDATE`와 잠금 순서 고정으로 재고 유실을 막았습니다.
+- **JPA 성능**: N+1을 fetch join으로 쿼리 11번 → 1번, 컬렉션 페이징은 batch fetch size로 해결. OSIV를 끄고 화면에는 DTO만 넘깁니다.
+- **트랜잭션 경계**: 외부 API(국세청 사업자 상태)는 트랜잭션 밖에서 타임아웃을 걸고 호출, 감사 로그는 `REQUIRES_NEW`와 커밋 후 기록으로 실패 시도까지 남깁니다.
+- **운영**: Spring Batch 야간 집계(재실행해도 결과 같음), Flyway 마이그레이션, GitHub Actions CI(MySQL + Docker로 띄워 확인), EC2 Docker 배포.
+
+각 문제를 어떻게 발견하고 숫자로 확인했는지는 아래 [트러블슈팅](#트러블슈팅-요약)에 정리했습니다.
+
+## 구조
+
+```mermaid
+flowchart LR
+    B[브라우저] -->|폼 로그인 · 세션| C[Controller<br/>Thymeleaf 화면]
+    C --> S[Service<br/>@Transactional]
+    S --> R[Repository<br/>Spring Data JPA · QueryDSL]
+    R --> DB[(MySQL 8)]
+    S -.->|트랜잭션 밖 호출| API[국세청 사업자 상태 API]
+    A[AuditAspect<br/>@Audited] -.-> S
+    J[Spring Batch<br/>매일 02:00] --> S
+```
+
+- 패키지는 업무 단위로 나눴습니다: `org`(조직) · `request`(요청서) · `approval`(결재) · `order`(발주) · `inventory`(재고) · `stats`(통계·배치) · `audit`(감사 로그). 자세한 구조는 [프로젝트 구조](#프로젝트-구조).
+- 테이블 관계는 [ERD](docs/02-ERD.md), 문서 상태 흐름(임시저장 → 결재중 → 승인/반려/회수)은 [결재 상태도](docs/04-결재-상태도.md)에 있습니다.
 
 ## 기술 스택
 
-Java 17 · Spring Boot 3.3 · Spring Data JPA · QueryDSL · Thymeleaf · Spring Security · Apache POI · MySQL 8 · Spring Batch · JUnit 5 · Docker · GitHub Actions · AWS EC2
+| 구분 | 사용 기술 |
+|---|---|
+| Backend | Java 17, Spring Boot 3.3, Spring Data JPA, QueryDSL, Spring Security, Spring Batch, Spring AOP |
+| Frontend | Thymeleaf (Layout Dialect), HTML/CSS |
+| DB | MySQL 8, Flyway, H2(테스트) |
+| 기타 | Apache POI(엑셀), 공공데이터포털 API |
+| Test | JUnit 5, Spring Boot Test (118개) |
+| 배포 | Docker, Docker Compose, GitHub Actions, AWS EC2 |
 
 ## 실행 방법
 
